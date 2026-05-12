@@ -3,6 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { supabase } from "@/lib/supabase";
 import { extractText } from "unpdf";
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 export async function POST(req: Request) {
   try {
@@ -26,17 +29,43 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    console.log("Extracting text from PDF...");
+    // Extract text from PDF
     const { text } = await extractText(new Uint8Array(buffer), { mergePages: true });
     const resumeText = typeof text === "string" ? text : (text as string[]).join(" ");
-    console.log("Text extracted, length:", resumeText.length);
 
+    // Use Claude to detect skills
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: `Extract all skills from this resume. Include technical skills, soft skills, certifications, tools, and domain-specific skills from ANY field (medical, legal, trades, education, etc.). Return ONLY a JSON array of strings, no explanation, no markdown, just the raw JSON array. Example: ["JavaScript", "Patient Care", "AutoCAD", "Team Leadership"]
+
+Resume:
+${resumeText}`,
+        },
+      ],
+    });
+
+    const content = message.content[0];
+    let skills: string[] = [];
+
+    if (content.type === "text") {
+      try {
+        skills = JSON.parse(content.text);
+      } catch {
+        // fallback: extract anything that looks like a list
+        skills = [];
+      }
+    }
+
+    // Get user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
-    console.log("User found:", user?.id);
-
+    // Delete old resume if exists
     if (user?.resumeUrl) {
       const oldPath = user.resumeUrl.split("/resumes/")[1];
       if (oldPath) {
@@ -44,36 +73,33 @@ export async function POST(req: Request) {
       }
     }
 
+    // Upload to Supabase Storage
     const fileName = `${user?.id}-${Date.now()}.pdf`;
-    console.log("Uploading to Supabase storage:", fileName);
-
     const { error: uploadError } = await supabase.storage
       .from("resumes")
       .upload(fileName, buffer, { contentType: "application/pdf" });
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
-      return NextResponse.json({ error: "Upload failed", details: uploadError }, { status: 500 });
+      return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
-
-    console.log("Upload successful");
 
     const { data: urlData } = supabase.storage
       .from("resumes")
       .getPublicUrl(fileName);
 
+    // Save everything to database
     await prisma.user.update({
       where: { email: session.user.email },
       data: {
         resumeUrl: urlData.publicUrl,
         resumeText,
         resumeFileName: file.name,
+        skills,
       },
     });
 
-    console.log("Database updated successfully");
-
-    return NextResponse.json({ success: true, resumeText });
+    return NextResponse.json({ success: true, skills });
   } catch (err) {
     console.error("Resume upload error:", err);
     return NextResponse.json({ error: "Internal server error", details: String(err) }, { status: 500 });

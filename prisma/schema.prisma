@@ -29,6 +29,8 @@ model User {
   resumeUrl      String?
   resumeText     String?
   resumeFileName String?
+
+  skills String[]
 }
 
 model Account {
