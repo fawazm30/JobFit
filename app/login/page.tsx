@@ -38,7 +38,7 @@ export default function LoginPage() {
       setError("Invalid email or password");
       setLoading(false);
     } else {
-      router.push("/dashboard");
+      router.push(tab === "signup" ? "/onboarding" : "/dashboard");
     }
   }
 
@@ -122,7 +122,7 @@ export default function LoginPage() {
         </div>
 
         <button
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
           className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24">
