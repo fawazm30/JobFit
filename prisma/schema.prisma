@@ -20,12 +20,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Onboarding
   onboardingComplete Boolean  @default(false)
   industries         String[]
   jobTitles          String[]
   locations          String[]
   jobTypes           String[]
+
+  resumeUrl      String?
+  resumeText     String?
+  resumeFileName String?
 }
 
 model Account {
