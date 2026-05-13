@@ -72,7 +72,12 @@ export default function JobsPage() {
   async function fetchJobs() {
     const res = await fetch("/api/jobs");
     const data = await res.json();
-    setJobs(data.jobs || []);
+    const sorted = (data.jobs || []).sort((a: Job, b: Job) => {
+        if (b.matchScore === null) return -1;
+        if (a.matchScore === null) return 1;
+        return b.matchScore - a.matchScore;
+    });
+    setJobs(sorted);
     setLoading(false);
   }
 
@@ -83,7 +88,12 @@ export default function JobsPage() {
     const res = await fetch("/api/jobs/discover", { method: "POST" });
     const data = await res.json();
     if (res.ok) {
-      setSuggestions(data.suggestions || []);
+      const sortedSuggestions = (data.suggestions || []).sort((a: Suggestion, b: Suggestion) => {
+        if (b.matchScore === null) return -1;
+        if (a.matchScore === null) return 1;
+        return b.matchScore - a.matchScore;
+      });
+      setSuggestions(sortedSuggestions);
       setDiscoverMsg(`Found ${data.suggestions.length} suggested jobs. Save the ones you like!`);
     } else {
       setDiscoverMsg(data.error || "Something went wrong.");
