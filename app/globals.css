@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+@source "../app";
+
+@utility match-green {
+  @apply bg-green-100 text-green-700;
+}
+
+@utility match-yellow {
+  @apply bg-yellow-100 text-yellow-700;
+}
+
+@utility match-red {
+  @apply bg-red-100 text-red-700;
+}
+
+@utility match-blue {
+  @apply bg-blue-100 text-blue-700;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
