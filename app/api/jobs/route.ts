@@ -15,9 +15,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const jobs = await prisma.jobPosting.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  where: { userId: user.id },
+  orderBy: { matchScore: "desc" },
+});
 
   return NextResponse.json({ jobs });
 }
