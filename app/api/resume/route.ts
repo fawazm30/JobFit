@@ -53,9 +53,14 @@ ${resumeText}`,
 
     if (content.type === "text") {
       try {
-        skills = JSON.parse(content.text);
-      } catch {
-        // fallback: extract anything that looks like a list
+        const cleaned = content.text
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
+        skills = JSON.parse(cleaned);
+        console.log("Parsed skills:", skills);
+      } catch (e) {
+        console.log("JSON parse failed:", e);
         skills = [];
       }
     }
