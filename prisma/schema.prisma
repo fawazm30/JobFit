@@ -31,6 +31,33 @@ model User {
   resumeFileName String?
 
   skills String[]
+
+  jobPostings     JobPosting[]
+}
+
+model JobPosting {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title           String
+  company         String
+  location        String?
+  description     String
+  applicationLink String?
+  
+  source          String   @default("manual") // "manual" or "adzuna"
+  externalId      String?  // for deduplication of auto-discovered jobs
+  
+  matchScore      Int?     // 0-100, calculated by Claude
+  matchReason     String?  // short explanation of the match
+  
+  status          String   @default("saved") // saved, applied, interviewing, rejected, offered
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, externalId])
 }
 
 model Account {
