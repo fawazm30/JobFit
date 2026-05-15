@@ -58,6 +58,8 @@ model JobPosting {
   updatedAt       DateTime @updatedAt
 
   @@unique([userId, externalId])
+
+  requiredSkills String[]
 }
 
 model Account {

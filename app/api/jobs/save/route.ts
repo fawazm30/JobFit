@@ -14,7 +14,17 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const { title, company, location, description, applicationLink, externalId, matchScore, matchReason } = await req.json();
+  const {
+    title,
+    company,
+    location,
+    description,
+    applicationLink,
+    externalId,
+    matchScore,
+    matchReason,
+    requirements,
+  } = await req.json();
 
   // Don't save duplicates
   const existing = await prisma.jobPosting.findFirst({
@@ -37,6 +47,7 @@ export async function POST(req: Request) {
       externalId,
       matchScore,
       matchReason,
+      requirements: requirements || [],
     },
   });
 
