@@ -15,9 +15,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const jobs = await prisma.jobPosting.findMany({
-  where: { userId: user.id },
-  orderBy: { matchScore: "desc" },
-});
+    where: { userId: user.id },
+    orderBy: { matchScore: "desc" },
+  });
 
   return NextResponse.json({ jobs });
 }
@@ -40,22 +40,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Use Claude to calculate match score
   let matchScore = null;
   let matchReason = null;
+  let requirements: string[] = [];
 
   if (user.resumeText) {
     try {
       const Anthropic = (await import("@anthropic-ai/sdk")).default;
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
-      const message = await anthropic.messages.create({
-        model: "claude-sonnet-4-5",
-        max_tokens: 512,
-        messages: [
-          {
-            role: "user",
-            content: `Compare this resume to the job description and return a match score.
+      const [matchMsg, reqMsg] = await Promise.all([
+        anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: 512,
+          messages: [
+            {
+              role: "user",
+              content: `Compare this resume to the job description and return a match score.
 
 Resume:
 ${user.resumeText}
@@ -67,13 +68,30 @@ ${description}
 
 Return ONLY a JSON object like this, no markdown:
 {"score": 75, "reason": "Strong match on React and Node.js, but missing Docker experience"}`,
-          },
-        ],
-      });
+            },
+          ],
+        }),
+        anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: 512,
+          messages: [
+            {
+              role: "user",
+              content: `Extract all requirements from this job description. Include skills, years of experience, education, certifications, licenses, languages, and any other requirements. Return ONLY a JSON array of strings, no markdown. Be specific and concise for each item.
 
-      const content = message.content[0];
-      if (content.type === "text") {
-        const cleaned = content.text
+Job Title: ${title}
+Job Description:
+${description}
+
+Example: ["3+ years experience", "Bachelor's degree in Computer Science", "React", "Class 5 Driver's License", "Clean Driver's Abstract", "Bilingual English/French"]`,
+            },
+          ],
+        }),
+      ]);
+
+      const matchContent = matchMsg.content[0];
+      if (matchContent.type === "text") {
+        const cleaned = matchContent.text
           .replace(/```json\n?/g, "")
           .replace(/```\n?/g, "")
           .trim();
@@ -81,8 +99,17 @@ Return ONLY a JSON object like this, no markdown:
         matchScore = result.score;
         matchReason = result.reason;
       }
+
+      const reqContent = reqMsg.content[0];
+      if (reqContent.type === "text") {
+        const cleaned = reqContent.text
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
+        requirements = JSON.parse(cleaned);
+      }
     } catch (e) {
-      console.error("Match scoring failed:", e);
+      console.error("Claude processing failed:", e);
     }
   }
 
@@ -97,6 +124,7 @@ Return ONLY a JSON object like this, no markdown:
       source: "manual",
       matchScore,
       matchReason,
+      requirements,
     },
   });
 
