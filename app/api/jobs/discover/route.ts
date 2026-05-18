@@ -20,11 +20,35 @@ export async function POST() {
   const jobTitles = user.jobTitles || [];
   const locations = user.locations || [];
 
-  if (jobTitles.length === 0) {
-    return NextResponse.json({ error: "No job preferences set" }, { status: 400 });
-  }
+  let query = jobTitles[0]?.trim() || "";
 
-  const query = jobTitles[0];
+  if (!query) {
+    try {
+        const msg = await anthropic.messages.create({
+        model: "claude-sonnet-4-5",
+        max_tokens: 100,
+        messages: [
+            {
+            role: "user",
+            content: `Based on this person's skills and industries, suggest ONE short job search query (2-4 words max) that would find relevant jobs on a job board. Return ONLY the search query, nothing else.
+
+    Industries: ${user.industries?.join(", ")}
+    Skills: ${user.skills?.slice(0, 10).join(", ")}
+
+    Example outputs: "Software Developer", "Registered Nurse", "Civil Engineer"`,
+            },
+        ],
+        });
+
+        const content = msg.content[0];
+        if (content.type === "text") {
+        query = content.text.trim().replace(/"/g, "");
+        }
+    } catch (e) {
+        console.error("Failed to generate query:", e);
+        query = user.industries?.[0] || "Software Developer";
+    }
+}
   const hasRemote = locations.includes("Remote") || locations.includes("Canada-wide");
   const specificLocation = locations.find(
     (l) => l !== "Remote" && l !== "Canada-wide"
@@ -61,6 +85,9 @@ export async function POST() {
   let matchScore = null;
   let matchReason = null;
   let requirements: string[] = [];
+  let matchedSkills: string[] = [];
+  let missingSkills: string[] = [];
+  let interestMatch: string | null = null;
 
   if (user.resumeText) {
     // Add small delay between jobs to avoid rate limiting
