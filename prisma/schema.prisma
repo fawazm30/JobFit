@@ -59,7 +59,7 @@ model JobPosting {
 
   @@unique([userId, externalId])
 
-  requiredSkills String[]
+  requirements String[]
 }
 
 model Account {
