@@ -47,7 +47,7 @@ Current job requirements: ${job.requirements?.join(", ")}
 Description: ${job.description?.slice(0, 500)}
 
 Return this exact format:
-{"score": 75, "reason": "Brief reason", "requirements": ["Requirement 1", "Requirement 2"]}`,
+{"score": 75, "reason": "Plain language explanation", "requirements": ["Requirement 1"], "matchedSkills": ["Skill 1"], "missingSkills": ["Skill 2"], "interestMatch": "Brief note on location/job type alignment"}`,
         },
       ],
     });
@@ -67,6 +67,9 @@ Return this exact format:
         matchScore: parsed.score,
         matchReason: parsed.reason,
         requirements: parsed.requirements || job.requirements,
+        matchedSkills: parsed.matchedSkills || job.matchedSkills,
+        missingSkills: parsed.missingSkills || job.missingSkills,
+        interestMatch: parsed.interestMatch || job.interestMatch,
       },
     });
 

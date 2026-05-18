@@ -91,7 +91,6 @@ export default function OnboardingPage() {
     setError("");
     if (step === 0) {
       if (selectedIndustries.length === 0) return setError("Please select at least one industry.");
-      if (!jobTitle.trim()) return setError("Please enter a job title.");
     }
     if (step === 1 && selectedLocations.length === 0)
       return setError("Please select at least one location.");
@@ -193,7 +192,7 @@ export default function OnboardingPage() {
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <h2 className="text-base font-semibold text-gray-900 mb-1">Job title</h2>
               <p className="text-sm text-gray-500 mb-4">
-                What role are you looking for? (e.g. Registered Nurse, Software Developer, Social Worker)
+                What role are you looking for? Leaving this blank will let us find jobs based on your resume and industry. (e.g. Registered Nurse, Software Developer, Social Worker)
               </p>
               <input
                 type="text"

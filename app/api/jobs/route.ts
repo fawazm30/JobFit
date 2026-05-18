@@ -43,23 +43,28 @@ export async function POST(req: Request) {
   let matchScore = null;
   let matchReason = null;
   let requirements: string[] = [];
+  let matchedSkills: string[] = [];
+  let missingSkills: string[] = [];
+  let interestMatch: string | null = null;
 
   if (user.resumeText) {
     try {
       const Anthropic = (await import("@anthropic-ai/sdk")).default;
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
-      const [matchMsg, reqMsg] = await Promise.all([
-        anthropic.messages.create({
-          model: "claude-sonnet-4-5",
-          max_tokens: 512,
-          messages: [
-            {
-              role: "user",
-              content: `Compare this resume to the job description and return a match score.
+      const matchMsg = await anthropic.messages.create({
+        model: "claude-sonnet-4-5",
+        max_tokens: 512,
+        messages: [
+          {
+            role: "user",
+            content: `Compare this resume to the job description and return a match score.
 
 Resume:
 ${user.resumeText}
+Skills: ${user.skills?.join(", ")}
+Location preferences: ${user.locations?.join(", ")}
+Job type preferences: ${user.jobTypes?.join(", ")}
 
 Job Title: ${title}
 Company: ${company}
@@ -67,27 +72,10 @@ Job Description:
 ${description}
 
 Return ONLY a JSON object like this, no markdown:
-{"score": 75, "reason": "Strong match on React and Node.js, but missing Docker experience"}`,
-            },
-          ],
-        }),
-        anthropic.messages.create({
-          model: "claude-sonnet-4-5",
-          max_tokens: 512,
-          messages: [
-            {
-              role: "user",
-              content: `Extract all requirements from this job description. Include skills, years of experience, education, certifications, licenses, languages, and any other requirements. Return ONLY a JSON array of strings, no markdown. Be specific and concise for each item.
-
-Job Title: ${title}
-Job Description:
-${description}
-
-Example: ["3+ years experience", "Bachelor's degree in Computer Science", "React", "Class 5 Driver's License", "Clean Driver's Abstract", "Bilingual English/French"]`,
-            },
-          ],
-        }),
-      ]);
+{"score": 75, "reason": "Plain language explanation", "requirements": ["Requirement 1"], "matchedSkills": ["Skill 1"], "missingSkills": ["Skill 2"], "interestMatch": "Brief note on location/job type alignment"}`,
+          },
+        ],
+      });
 
       const matchContent = matchMsg.content[0];
       if (matchContent.type === "text") {
@@ -98,15 +86,10 @@ Example: ["3+ years experience", "Bachelor's degree in Computer Science", "React
         const result = JSON.parse(cleaned);
         matchScore = result.score;
         matchReason = result.reason;
-      }
-
-      const reqContent = reqMsg.content[0];
-      if (reqContent.type === "text") {
-        const cleaned = reqContent.text
-          .replace(/```json\n?/g, "")
-          .replace(/```\n?/g, "")
-          .trim();
-        requirements = JSON.parse(cleaned);
+        requirements = result.requirements || [];
+        matchedSkills = result.matchedSkills || [];
+        missingSkills = result.missingSkills || [];
+        interestMatch = result.interestMatch || null;
       }
     } catch (e) {
       console.error("Claude processing failed:", e);
@@ -125,6 +108,9 @@ Example: ["3+ years experience", "Bachelor's degree in Computer Science", "React
       matchScore,
       matchReason,
       requirements,
+      matchedSkills,
+      missingSkills,
+      interestMatch,
     },
   });
 
