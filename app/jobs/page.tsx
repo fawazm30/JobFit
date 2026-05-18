@@ -74,6 +74,8 @@ function JobRequirements({
   onAddReq,
   onRemoveReq,
   onReqInput,
+  onRecalculate,
+  recalculating,
 }: {
   jobId: string;
   requirements: string[];
@@ -82,12 +84,23 @@ function JobRequirements({
   onAddReq: (id: string) => void;
   onRemoveReq: (id: string, req: string) => void;
   onReqInput: (id: string, val: string) => void;
+  onRecalculate: (id: string) => void;
+  recalculating: string | null;
 }) {
   const currentReqs = editingReqs[jobId] ?? requirements;
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-100">
-      <p className="text-xs font-semibold text-gray-500 mb-2">Job requirements</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-semibold text-gray-500">Job requirements</p>
+        <button
+          onClick={() => onRecalculate(jobId)}
+          disabled={recalculating === jobId}
+          className="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-50"
+        >
+          {recalculating === jobId ? "Recalculating..." : "↻ Recalculate score"}
+        </button>
+      </div>
       <div className="flex flex-wrap gap-1.5 mb-3">
         {currentReqs.length === 0 ? (
           <p className="text-xs text-gray-400">No requirements extracted.</p>
@@ -140,6 +153,7 @@ export default function JobsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingReqs, setEditingReqs] = useState<{ [id: string]: string[] }>({});
   const [newReqInput, setNewReqInput] = useState<{ [id: string]: string }>({});
+  const [recalculating, setRecalculating] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -197,6 +211,15 @@ export default function JobsPage() {
     }
   }
 
+  async function recalculateScore(jobId: string) {
+    setRecalculating(jobId);
+    const res = await fetch(`/api/jobs/${jobId}/recalculate`, { method: "POST" });
+    if (res.ok) {
+      fetchJobs();
+    }
+    setRecalculating(null);
+  }
+
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
   }
@@ -238,16 +261,10 @@ export default function JobsPage() {
           JobFit
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900">
             Dashboard
           </Link>
-          <Link
-            href="/resume"
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
+          <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900">
             Resume
           </Link>
         </div>
@@ -302,10 +319,7 @@ export default function JobsPage() {
                         </h2>
                         <MatchBadge score={s.matchScore} />
                         <span
-                          style={{
-                            backgroundColor: "#dbeafe",
-                            color: "#1d4ed8",
-                          }}
+                          style={{ backgroundColor: "#dbeafe", color: "#1d4ed8" }}
                           className="px-2 py-0.5 rounded-full text-xs font-medium"
                         >
                           Suggested
@@ -313,14 +327,10 @@ export default function JobsPage() {
                       </div>
                       <p className="text-sm text-gray-600">{s.company}</p>
                       {s.location && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {s.location}
-                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{s.location}</p>
                       )}
                       {s.matchReason && (
-                        <p className="text-xs text-gray-500 mt-2 italic">
-                          {s.matchReason}
-                        </p>
+                        <p className="text-xs text-gray-500 mt-2 italic">{s.matchReason}</p>
                       )}
                       {s.requirements.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
@@ -367,9 +377,7 @@ export default function JobsPage() {
         )}
 
         {/* Saved jobs section */}
-        <h2 className="text-base font-semibold text-gray-900 mb-3">
-          Saved jobs
-        </h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Saved jobs</h2>
         {jobs.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
             <p className="text-gray-400 text-sm mb-4">No saved jobs yet.</p>
@@ -408,14 +416,10 @@ export default function JobsPage() {
                     </div>
                     <p className="text-sm text-gray-600">{job.company}</p>
                     {job.location && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {job.location}
-                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">{job.location}</p>
                     )}
                     {job.matchReason && (
-                      <p className="text-xs text-gray-500 mt-2 italic">
-                        {job.matchReason}
-                      </p>
+                      <p className="text-xs text-gray-500 mt-2 italic">{job.matchReason}</p>
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
@@ -462,6 +466,8 @@ export default function JobsPage() {
                     onReqInput={(id, val) =>
                       setNewReqInput((prev) => ({ ...prev, [id]: val }))
                     }
+                    onRecalculate={recalculateScore}
+                    recalculating={recalculating}
                   />
                 )}
               </div>
