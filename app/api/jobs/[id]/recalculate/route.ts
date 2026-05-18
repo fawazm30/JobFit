@@ -7,12 +7,14 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await params;
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -22,7 +24,7 @@ export async function POST(
   if (!user.resumeText) return NextResponse.json({ error: "No resume uploaded" }, { status: 400 });
 
   const job = await prisma.jobPosting.findFirst({
-    where: { id: params.id, userId: user.id },
+    where: { id, userId: user.id },
   });
 
   if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });

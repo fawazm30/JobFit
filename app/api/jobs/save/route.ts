@@ -86,6 +86,7 @@ export async function POST(req: Request) {
     description,
     applicationLink,
     externalId,
+    status = "saved",
   } = await req.json();
 
   // Don't save duplicates
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
       applicationLink,
       source: "adzuna",
       externalId,
-      matchScore: null,
+      matchScore: null, status,
       matchReason: null,
       requirements: [],
       matchedSkills: [],

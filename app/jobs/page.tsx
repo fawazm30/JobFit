@@ -198,6 +198,7 @@ export default function JobsPage() {
   const [editingReqs, setEditingReqs] = useState<{ [id: string]: string[] }>({});
   const [newReqInput, setNewReqInput] = useState<{ [id: string]: string }>({});
   const [recalculating, setRecalculating] = useState<string | null>(null);
+  const [ignoredIds, setIgnoredIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -226,7 +227,11 @@ export default function JobsPage() {
     const res = await fetch("/api/jobs/discover", { method: "POST" });
     const data = await res.json();
     if (res.ok) {
-      const sortedSuggestions = (data.suggestions || []).sort(
+      const savedExternalIds = new Set(jobs.map((j) => j.externalId).filter(Boolean));
+      const filteredSuggestions = (data.suggestions || []).filter(
+          (s: Suggestion) => !savedExternalIds.has(s.externalId)
+      );
+      const sortedSuggestions = filteredSuggestions.sort(
         (a: Suggestion, b: Suggestion) => {
           if (b.matchScore === null) return -1;
           if (a.matchScore === null) return 1;
@@ -252,14 +257,9 @@ export default function JobsPage() {
     if (res.ok) {
       setSavedIds((prev) => new Set([...prev, suggestion.externalId]));
       fetchJobs();
-
-      if (res.ok) {
-        setSavedIds((prev) => new Set([...prev, suggestion.externalId]));
-        fetchJobs();
         // Poll for scores after Claude finishes in background
         setTimeout(() => fetchJobs(), 8000);
         setTimeout(() => fetchJobs(), 15000);
-      }
     }
   }
 
@@ -271,6 +271,28 @@ export default function JobsPage() {
     }
     setRecalculating(null);
  }
+
+ async function ignoreJob(jobId: string) {
+  const res = await fetch(`/api/jobs/${jobId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "ignored" }),
+  });
+  if (res.ok) {
+    fetchJobs();
+  }
+}
+
+async function unignoreJob(jobId: string) {
+  const res = await fetch(`/api/jobs/${jobId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "saved" }),
+  });
+  if (res.ok) {
+    fetchJobs();
+  }
+}
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -296,6 +318,19 @@ export default function JobsPage() {
       [];
     setEditingReqs((prev) => ({ ...prev, [jobId]: [...current, req] }));
     setNewReqInput((prev) => ({ ...prev, [jobId]: "" }));
+  }
+
+  async function ignoreSuggestion(externalId: string) {
+    setIgnoredIds((prev) => new Set([...prev, externalId]));
+    const suggestion = suggestions.find((s) => s.externalId === externalId);
+    if (suggestion) {
+      await fetch("/api/jobs/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...suggestion, status: "ignored" }),
+      });
+      fetchJobs();
+    }
   }
 
   if (status === "loading" || loading) {
@@ -364,7 +399,9 @@ export default function JobsPage() {
               Suggested for you
             </h2>
             <div className="space-y-3">
-              {suggestions.map((s) => (
+              {suggestions
+                .filter((s) => !ignoredIds.has(s.externalId))
+                .map((s) => (
                 <div
                   key={s.externalId}
                   className="bg-white border border-blue-100 rounded-xl p-5"
@@ -438,11 +475,6 @@ export default function JobsPage() {
                           ))}
                         </div>
                       )}
-                      {!s.interestMatch && (
-                        <p className="text-xs text-gray-500 mt-2 italic">
-                          {s.interestMatch}
-                        </p>
-                      )}
                       {(s.matchedSkills || []).length === 0 && (s.missingSkills || []).length === 0 && (
                         <p className="text-xs text-gray-400 mt-2 italic">
                           No skill match data available.
@@ -472,6 +504,13 @@ export default function JobsPage() {
                       >
                         {savedIds.has(s.externalId) ? "Saved" : "Save"}
                       </button>
+                      <button
+                        onClick={() => ignoreSuggestion(s.externalId)}
+                        disabled={ignoredIds.has(s.externalId)}
+                        className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50 transition-colors"
+                      >
+                        {ignoredIds.has(s.externalId) ? "Ignored" : "Ignore"}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -484,7 +523,7 @@ export default function JobsPage() {
         <h2 className="text-base font-semibold text-gray-900 mb-3">
           Saved jobs
         </h2>
-        {jobs.length === 0 ? (
+        {jobs.filter((job) => job.status !== "ignored").length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
             <p className="text-gray-400 text-sm mb-4">No saved jobs yet.</p>
             <div className="flex gap-2 justify-center">
@@ -504,7 +543,9 @@ export default function JobsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {jobs.map((job) => (
+            {jobs
+            .filter((job) => job.status !== "ignored")
+            .map((job) => (
               <div
                 key={job.id}
                 className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors"
@@ -544,6 +585,15 @@ export default function JobsPage() {
                         Apply
                       </a>
                     )}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation(); // to prevent toggling expand when clicking ignore
+                            ignoreJob(job.id);
+                        }}
+                        className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors"
+                        >
+                        {job.status === "ignored" ? "Ignored" : "Ignore"}
+                    </button>
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                         job.status === "applied"
@@ -586,6 +636,33 @@ export default function JobsPage() {
               </div>
             ))}
           </div>
+        )}
+        {/* Ignored jobs section */}
+        {jobs.filter((job) => job.status === "ignored").length > 0 && (
+        <div className="mt-10">
+            <h2 className="text-base font-semibold text-gray-400 mb-3">
+            Ignored jobs ({jobs.filter((job) => job.status === "ignored").length})
+            </h2>
+            <div className="space-y-2">
+            {jobs
+                .filter((job) => job.status === "ignored")
+                .map((job) => (
+                <div key={job.id} className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                    <p className="text-sm font-medium text-gray-500">{job.title}</p>
+                    <p className="text-xs text-gray-400">{job.company}</p>
+                    </div>
+                    {/* YOUR TURN: Add an Unignore button here that calls ignoreJob but with status "saved" */}
+                    <button
+                        onClick={() => unignoreJob(job.id)}
+                        className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors"
+                    >
+                        Unignore
+                    </button>
+                </div>
+                ))}
+            </div>
+        </div>
         )}
       </div>
     </div>
