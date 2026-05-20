@@ -50,6 +50,15 @@ export default function NewJobPage() {
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <Link href="/dashboard" className="text-lg font-semibold text-gray-900">JobFit</Link>
         <Link href="/jobs" className="text-sm text-gray-500 hover:text-gray-900">Back to jobs</Link>
+        <div className="flex items-center gap-4">
+        <Link href="/jobs" className="text-sm text-gray-500 hover:text-gray-900">Back to jobs</Link>
+            <button
+                onClick={() => router.back()}
+                className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            >
+                Cancel
+            </button>
+        </div>
       </nav>
 
       <div className="max-w-xl mx-auto px-4 py-10">

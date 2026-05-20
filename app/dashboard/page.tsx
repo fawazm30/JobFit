@@ -66,6 +66,9 @@ export default function DashboardPage() {
             <Link href="/jobs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
             Jobs
             </Link>
+            <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+            Applications
+            </Link>
             <span className="text-sm text-gray-500">{session?.user?.name}</span>
             <button
             onClick={() => signOut({ callbackUrl: "/login" })}
