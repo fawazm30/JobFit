@@ -57,6 +57,7 @@ model JobPosting {
   interestMatch String?
   
   status          String   @default("saved") // saved, applied, interviewing, rejected, offered
+  applicationStatus String? // interested, applied, interview, rejected, offer, ghosted
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

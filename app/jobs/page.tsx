@@ -41,66 +41,35 @@ type Suggestion = {
 
 function MatchBadge({ score }: { score: number | null }) {
   if (score === null) return null;
-
   if (score >= 75) {
     return (
-      <span
-        style={{ backgroundColor: "#dcfce7", color: "#15803d" }}
-        className="px-2 py-0.5 rounded-full text-xs font-semibold"
-      >
+      <span style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
         {score}% match
       </span>
     );
   }
   if (score >= 50) {
     return (
-      <span
-        style={{ backgroundColor: "#fef9c3", color: "#a16207" }}
-        className="px-2 py-0.5 rounded-full text-xs font-semibold"
-      >
+      <span style={{ backgroundColor: "#fef9c3", color: "#a16207" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
         {score}% match
       </span>
     );
   }
   return (
-    <span
-      style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }}
-      className="px-2 py-0.5 rounded-full text-xs font-semibold"
-    >
+    <span style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
       {score}% match
     </span>
   );
 }
 
 function JobRequirements({
-  jobId,
-  requirements,
-  editingReqs,
-  newReqInput,
-  onAddReq,
-  onRemoveReq,
-  onReqInput,
-  onRecalculate,
-  recalculating,
-  matchedSkills,
-  missingSkills,
-  interestMatch,
+  jobId, requirements, editingReqs, newReqInput, onAddReq, onRemoveReq, onReqInput, onRecalculate, recalculating, matchedSkills, missingSkills, interestMatch,
 }: {
-  jobId: string;
-  requirements: string[];
-  editingReqs: { [id: string]: string[] };
-  newReqInput: { [id: string]: string };
-  onAddReq: (id: string) => void;
-  onRemoveReq: (id: string, req: string) => void;
-  onReqInput: (id: string, val: string) => void;
-  onRecalculate: (id: string) => void;
-  recalculating: string | null;
-  matchedSkills: string[];
-  missingSkills: string[];
-  interestMatch: string | null;
+  jobId: string; requirements: string[]; editingReqs: { [id: string]: string[] }; newReqInput: { [id: string]: string };
+  onAddReq: (id: string) => void; onRemoveReq: (id: string, req: string) => void; onReqInput: (id: string, val: string) => void;
+  onRecalculate: (id: string) => void; recalculating: string | null; matchedSkills: string[]; missingSkills: string[]; interestMatch: string | null;
 }) {
   const currentReqs = editingReqs[jobId] ?? requirements;
-
   return (
     <div className="mt-4 pt-4 border-t border-gray-100">
       <p className="text-xs font-semibold text-gray-500 mb-2">Job requirements</p>
@@ -109,17 +78,9 @@ function JobRequirements({
           <p className="text-xs text-gray-400">No requirements extracted.</p>
         ) : (
           currentReqs.map((req) => (
-            <span
-              key={req}
-              className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
-            >
+            <span key={req} className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
               {req}
-              <button
-                onClick={() => onRemoveReq(jobId, req)}
-                className="text-gray-400 hover:text-red-500 transition-colors"
-              >
-                x
-              </button>
+              <button onClick={() => onRemoveReq(jobId, req)} className="text-gray-400 hover:text-red-500 transition-colors">x</button>
             </span>
           ))
         )}
@@ -129,27 +90,21 @@ function JobRequirements({
           <p className="text-xs font-semibold text-green-600 mb-1">Matched skills</p>
           <div className="flex flex-wrap gap-1.5">
             {matchedSkills.map((skill) => (
-              <span key={skill} style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-1 rounded-full text-xs font-medium">
-                {skill}
-              </span>
+              <span key={skill} style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-1 rounded-full text-xs font-medium">{skill}</span>
             ))}
           </div>
         </div>
       )}
-
       {missingSkills.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-red-600 mb-1">Missing skills</p>
           <div className="flex flex-wrap gap-1.5">
             {missingSkills.map((skill) => (
-              <span key={skill} style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }} className="px-2 py-1 rounded-full text-xs font-medium">
-                {skill}
-              </span>
+              <span key={skill} style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }} className="px-2 py-1 rounded-full text-xs font-medium">{skill}</span>
             ))}
           </div>
         </div>
       )}
-
       {interestMatch && (
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-500 mb-1">Interest match</p>
@@ -157,29 +112,13 @@ function JobRequirements({
         </div>
       )}
       <div className="mt-4 flex items-center justify-between gap-2">
-        <button
-          onClick={() => onRecalculate(jobId)}
-          disabled={recalculating === jobId}
-          className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
-        >
+        <button onClick={() => onRecalculate(jobId)} disabled={recalculating === jobId} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {recalculating === jobId ? "Recalculating..." : "Recalculate score"}
         </button>
       </div>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newReqInput[jobId] || ""}
-          onChange={(e) => onReqInput(jobId, e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onAddReq(jobId)}
-          placeholder="Add a requirement..."
-          className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
-        />
-        <button
-          onClick={() => onAddReq(jobId)}
-          className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors"
-        >
-          Add
-        </button>
+      <div className="flex gap-2 mt-3">
+        <input type="text" value={newReqInput[jobId] || ""} onChange={(e) => onReqInput(jobId, e.target.value)} onKeyDown={(e) => e.key === "Enter" && onAddReq(jobId)} placeholder="Add a requirement..." className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900" />
+        <button onClick={() => onAddReq(jobId)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors">Add</button>
       </div>
     </div>
   );
@@ -199,6 +138,8 @@ export default function JobsPage() {
   const [newReqInput, setNewReqInput] = useState<{ [id: string]: string }>({});
   const [recalculating, setRecalculating] = useState<string | null>(null);
   const [ignoredIds, setIgnoredIds] = useState<Set<string>>(new Set());
+  const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
+  const [applyingSuggestion, setApplyingSuggestion] = useState<Suggestion | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -228,20 +169,14 @@ export default function JobsPage() {
     const data = await res.json();
     if (res.ok) {
       const savedExternalIds = new Set(jobs.map((j) => j.externalId).filter(Boolean));
-      const filteredSuggestions = (data.suggestions || []).filter(
-          (s: Suggestion) => !savedExternalIds.has(s.externalId)
-      );
-      const sortedSuggestions = filteredSuggestions.sort(
-        (a: Suggestion, b: Suggestion) => {
-          if (b.matchScore === null) return -1;
-          if (a.matchScore === null) return 1;
-          return b.matchScore - a.matchScore;
-        }
-      );
+      const filteredSuggestions = (data.suggestions || []).filter((s: Suggestion) => !savedExternalIds.has(s.externalId));
+      const sortedSuggestions = filteredSuggestions.sort((a: Suggestion, b: Suggestion) => {
+        if (b.matchScore === null) return -1;
+        if (a.matchScore === null) return 1;
+        return b.matchScore - a.matchScore;
+      });
       setSuggestions(sortedSuggestions);
-      setDiscoverMsg(
-        `Found ${sortedSuggestions.length} suggested jobs. Save the ones you like!`
-      );
+      setDiscoverMsg(`Found ${sortedSuggestions.length} suggested jobs. Save the ones you like!`);
     } else {
       setDiscoverMsg(data.error || "Something went wrong.");
     }
@@ -257,65 +192,55 @@ export default function JobsPage() {
     if (res.ok) {
       setSavedIds((prev) => new Set([...prev, suggestion.externalId]));
       fetchJobs();
-        // Poll for scores after Claude finishes in background
-        setTimeout(() => fetchJobs(), 8000);
-        setTimeout(() => fetchJobs(), 15000);
+      setTimeout(() => fetchJobs(), 8000);
+      setTimeout(() => fetchJobs(), 15000);
     }
   }
 
   async function recalculateScore(jobId: string) {
     setRecalculating(jobId);
     const res = await fetch(`/api/jobs/${jobId}/recalculate`, { method: "POST" });
-    if (res.ok) {
-        fetchJobs();
-    }
+    if (res.ok) fetchJobs();
     setRecalculating(null);
- }
-
- async function ignoreJob(jobId: string) {
-  const res = await fetch(`/api/jobs/${jobId}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "ignored" }),
-  });
-  if (res.ok) {
-    fetchJobs();
   }
-}
 
-async function unignoreJob(jobId: string) {
-  const res = await fetch(`/api/jobs/${jobId}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "saved" }),
-  });
-  if (res.ok) {
-    fetchJobs();
+  async function ignoreJob(jobId: string) {
+    const res = await fetch(`/api/jobs/${jobId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ignored" }),
+    });
+    if (res.ok) fetchJobs();
   }
-}
+
+  async function unignoreJob(jobId: string) {
+    const res = await fetch(`/api/jobs/${jobId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "saved" }),
+    });
+    if (res.ok) fetchJobs();
+  }
+
+  function handleApplyClick(job: Job, e: React.MouseEvent) {
+    e.stopPropagation();
+    // Let the link open naturally via target="_blank"
+    setTimeout(() => setApplyingJobId(job.id), 500);
+  }
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
   }
 
   function removeReq(jobId: string, req: string) {
-    const current =
-      editingReqs[jobId] ??
-      jobs.find((j) => j.id === jobId)?.requirements ??
-      [];
-    setEditingReqs((prev) => ({
-      ...prev,
-      [jobId]: current.filter((r) => r !== req),
-    }));
+    const current = editingReqs[jobId] ?? jobs.find((j) => j.id === jobId)?.requirements ?? [];
+    setEditingReqs((prev) => ({ ...prev, [jobId]: current.filter((r) => r !== req) }));
   }
 
   function addReq(jobId: string) {
     const req = newReqInput[jobId]?.trim();
     if (!req) return;
-    const current =
-      editingReqs[jobId] ??
-      jobs.find((j) => j.id === jobId)?.requirements ??
-      [];
+    const current = editingReqs[jobId] ?? jobs.find((j) => j.id === jobId)?.requirements ?? [];
     setEditingReqs((prev) => ({ ...prev, [jobId]: [...current, req] }));
     setNewReqInput((prev) => ({ ...prev, [jobId]: "" }));
   }
@@ -344,22 +269,11 @@ async function unignoreJob(jobId: string) {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <Link href="/dashboard" className="text-lg font-semibold text-gray-900">
-          JobFit
-        </Link>
+        <Link href="/dashboard" className="text-lg font-semibold text-gray-900">JobFit</Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/resume"
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
-            Resume
-          </Link>
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link>
+          <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900">Resume</Link>
+          <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900">Applications</Link>
         </div>
       </nav>
 
@@ -367,124 +281,57 @@ async function unignoreJob(jobId: string) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Jobs</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {jobs.length} job{jobs.length !== 1 ? "s" : ""} saved
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{jobs.length} job{jobs.length !== 1 ? "s" : ""} saved</p>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={discoverJobs}
-              disabled={discovering}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
+            <button onClick={discoverJobs} disabled={discovering} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors">
               {discovering ? "Searching..." : "Find jobs for me"}
             </button>
-            <Link
-              href="/jobs/new"
-              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
-              + Add job
-            </Link>
+            <Link href="/jobs/new" className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">+ Add job</Link>
           </div>
         </div>
 
-        {discoverMsg && (
-          <p className="text-sm text-green-600 mb-6">{discoverMsg}</p>
-        )}
+        {discoverMsg && <p className="text-sm text-green-600 mb-6">{discoverMsg}</p>}
 
         {/* Suggested jobs section */}
         {suggestions.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-base font-semibold text-gray-900 mb-3">
-              Suggested for you
-            </h2>
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Suggested for you</h2>
             <div className="space-y-3">
-              {suggestions
-                .filter((s) => !ignoredIds.has(s.externalId))
-                .map((s) => (
-                <div
-                  key={s.externalId}
-                  className="bg-white border border-blue-100 rounded-xl p-5"
-                >
+              {suggestions.filter((s) => !ignoredIds.has(s.externalId)).map((s) => (
+                <div key={s.externalId} className="bg-white border border-blue-100 rounded-xl p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h2 className="text-sm font-semibold text-gray-900">
-                          {s.title}
-                        </h2>
+                        <h2 className="text-sm font-semibold text-gray-900">{s.title}</h2>
                         <MatchBadge score={s.matchScore} />
-                        <span
-                          style={{
-                            backgroundColor: "#dbeafe",
-                            color: "#1d4ed8",
-                          }}
-                          className="px-2 py-0.5 rounded-full text-xs font-medium"
-                        >
-                          Suggested
-                        </span>
+                        <span style={{ backgroundColor: "#dbeafe", color: "#1d4ed8" }} className="px-2 py-0.5 rounded-full text-xs font-medium">Suggested</span>
                       </div>
                       <p className="text-sm text-gray-600">{s.company}</p>
-                      {s.location && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {s.location}
-                        </p>
-                      )}
-                      {s.matchReason && (
-                        <p className="text-xs text-gray-500 mt-2 italic">
-                          {s.matchReason}
-                        </p>
-                      )}
+                      {s.location && <p className="text-xs text-gray-400 mt-0.5">{s.location}</p>}
+                      {s.matchReason && <p className="text-xs text-gray-500 mt-2 italic">{s.matchReason}</p>}
                       {s.requirements.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {s.requirements.slice(0, 5).map((req) => (
-                            <span
-                              key={req}
-                              className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
-                            >
-                              {req}
-                            </span>
+                            <span key={req} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">{req}</span>
                           ))}
-                          {s.requirements.length > 5 && (
-                            <span className="px-2 py-1 text-gray-400 text-xs">
-                              +{s.requirements.length - 5} more
-                            </span>
-                          )}
+                          {s.requirements.length > 5 && <span className="px-2 py-1 text-gray-400 text-xs">+{s.requirements.length - 5} more</span>}
                         </div>
                       )}
                       {(s.matchedSkills || []).length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
-                          {s.matchedSkills.map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs"
-                            >
-                              {skill}
-                            </span>
-                          ))}
+                          {s.matchedSkills.map((skill) => <span key={skill} className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs">{skill}</span>)}
                         </div>
                       )}
                       {(s.missingSkills || []).length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
-                          {s.missingSkills.map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs"
-                            >
-                              {skill}
-                            </span>
-                          ))}
+                          {s.missingSkills.map((skill) => <span key={skill} className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs">{skill}</span>)}
                         </div>
                       )}
                       {(s.matchedSkills || []).length === 0 && (s.missingSkills || []).length === 0 && (
-                        <p className="text-xs text-gray-400 mt-2 italic">
-                          No skill match data available.
-                        </p>
+                        <p className="text-xs text-gray-400 mt-2 italic">No skill match data available.</p>
                       )}
-                      {!s.interestMatch && (
-                        <p className="text-xs text-gray-400 mt-2 italic">
-                            No location/job type match data available.
-                        </p>
-                      )}
+                      {!s.interestMatch && <p className="text-xs text-gray-400 mt-2 italic">No location/job type match data available.</p>}
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
                       {s.applicationLink && (
@@ -492,23 +339,18 @@ async function unignoreJob(jobId: string) {
                           href={s.applicationLink}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => {
+                            setTimeout(() => setApplyingSuggestion(s), 500);
+                          }}
                           className="text-xs text-blue-600 hover:underline"
                         >
                           View posting
                         </a>
                       )}
-                      <button
-                        onClick={() => saveJob(s)}
-                        disabled={savedIds.has(s.externalId)}
-                        className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
-                      >
+                      <button onClick={() => saveJob(s)} disabled={savedIds.has(s.externalId)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors">
                         {savedIds.has(s.externalId) ? "Saved" : "Save"}
                       </button>
-                      <button
-                        onClick={() => ignoreSuggestion(s.externalId)}
-                        disabled={ignoredIds.has(s.externalId)}
-                        className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50 transition-colors"
-                      >
+                      <button onClick={() => ignoreSuggestion(s.externalId)} disabled={ignoredIds.has(s.externalId)} className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50 transition-colors">
                         {ignoredIds.has(s.externalId) ? "Ignored" : "Ignore"}
                       </button>
                     </div>
@@ -520,58 +362,28 @@ async function unignoreJob(jobId: string) {
         )}
 
         {/* Saved jobs section */}
-        <h2 className="text-base font-semibold text-gray-900 mb-3">
-          Saved jobs
-        </h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Saved jobs</h2>
         {jobs.filter((job) => job.status !== "ignored").length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
             <p className="text-gray-400 text-sm mb-4">No saved jobs yet.</p>
             <div className="flex gap-2 justify-center">
-              <button
-                onClick={discoverJobs}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Find jobs for me
-              </button>
-              <Link
-                href="/jobs/new"
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
-              >
-                Add manually
-              </Link>
+              <button onClick={discoverJobs} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Find jobs for me</button>
+              <Link href="/jobs/new" className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">Add manually</Link>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            {jobs
-            .filter((job) => job.status !== "ignored")
-            .map((job) => (
-              <div
-                key={job.id}
-                className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors"
-              >
-                <div
-                  className="flex items-start justify-between gap-4 cursor-pointer"
-                  onClick={() => toggleExpand(job.id)}
-                >
+            {jobs.filter((job) => job.status !== "ignored").map((job) => (
+              <div key={job.id} className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
+                <div className="flex items-start justify-between gap-4 cursor-pointer" onClick={() => toggleExpand(job.id)}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h2 className="text-sm font-semibold text-gray-900">
-                        {job.title}
-                      </h2>
+                      <h2 className="text-sm font-semibold text-gray-900">{job.title}</h2>
                       <MatchBadge score={job.matchScore} />
                     </div>
                     <p className="text-sm text-gray-600">{job.company}</p>
-                    {job.location && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {job.location}
-                      </p>
-                    )}
-                    {job.matchReason && (
-                      <p className="text-xs text-gray-500 mt-2 italic">
-                        {job.matchReason}
-                      </p>
-                    )}
+                    {job.location && <p className="text-xs text-gray-400 mt-0.5">{job.location}</p>}
+                    {job.matchReason && <p className="text-xs text-gray-500 mt-2 italic">{job.matchReason}</p>}
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     {job.applicationLink && (
@@ -579,42 +391,30 @@ async function unignoreJob(jobId: string) {
                         href={job.applicationLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => handleApplyClick(job, e)}
                         className="text-xs text-blue-600 hover:underline"
                       >
                         Apply
                       </a>
                     )}
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation(); // to prevent toggling expand when clicking ignore
-                            ignoreJob(job.id);
-                        }}
-                        className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors"
-                        >
-                        {job.status === "ignored" ? "Ignored" : "Ignore"}
-                    </button>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        job.status === "applied"
-                          ? "bg-blue-100 text-blue-700"
-                          : job.status === "interviewing"
-                          ? "bg-purple-100 text-purple-700"
-                          : job.status === "offered"
-                          ? "bg-green-100 text-green-700"
-                          : job.status === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
+                      onClick={(e) => { e.stopPropagation(); ignoreJob(job.id); }}
+                      className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors"
                     >
+                      {job.status === "ignored" ? "Ignored" : "Ignore"}
+                    </button>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      job.status === "applied" ? "bg-blue-100 text-blue-700" :
+                      job.status === "interviewing" ? "bg-purple-100 text-purple-700" :
+                      job.status === "offered" ? "bg-green-100 text-green-700" :
+                      job.status === "rejected" ? "bg-red-100 text-red-700" :
+                      "bg-gray-100 text-gray-600"
+                    }`}>
                       {job.status}
                     </span>
-                    <span className="text-xs text-gray-400">
-                      {expandedId === job.id ? "▲" : "▼"}
-                    </span>
+                    <span className="text-xs text-gray-400">{expandedId === job.id ? "▲" : "▼"}</span>
                   </div>
                 </div>
-
                 {expandedId === job.id && (
                   <JobRequirements
                     jobId={job.id}
@@ -623,48 +423,93 @@ async function unignoreJob(jobId: string) {
                     newReqInput={newReqInput}
                     onAddReq={addReq}
                     onRemoveReq={removeReq}
-                    onReqInput={(id, val) =>
-                        setNewReqInput((prev) => ({ ...prev, [id]: val }))
-                    }
+                    onReqInput={(id, val) => setNewReqInput((prev) => ({ ...prev, [id]: val }))}
                     onRecalculate={recalculateScore}
                     recalculating={recalculating}
                     matchedSkills={job.matchedSkills}
                     missingSkills={job.missingSkills}
                     interestMatch={job.interestMatch}
-                    />
+                  />
                 )}
               </div>
             ))}
           </div>
         )}
+
         {/* Ignored jobs section */}
         {jobs.filter((job) => job.status === "ignored").length > 0 && (
-        <div className="mt-10">
+          <div className="mt-10">
             <h2 className="text-base font-semibold text-gray-400 mb-3">
-            Ignored jobs ({jobs.filter((job) => job.status === "ignored").length})
+              Ignored jobs ({jobs.filter((job) => job.status === "ignored").length})
             </h2>
             <div className="space-y-2">
-            {jobs
-                .filter((job) => job.status === "ignored")
-                .map((job) => (
+              {jobs.filter((job) => job.status === "ignored").map((job) => (
                 <div key={job.id} className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between">
-                    <div>
+                  <div>
                     <p className="text-sm font-medium text-gray-500">{job.title}</p>
                     <p className="text-xs text-gray-400">{job.company}</p>
-                    </div>
-                    {/* YOUR TURN: Add an Unignore button here that calls ignoreJob but with status "saved" */}
-                    <button
-                        onClick={() => unignoreJob(job.id)}
-                        className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors"
-                    >
-                        Unignore
-                    </button>
+                  </div>
+                  <button onClick={() => unignoreJob(job.id)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors">
+                    Unignore
+                  </button>
                 </div>
-                ))}
+              ))}
             </div>
-        </div>
+          </div>
         )}
       </div>
+
+      {/* Apply confirmation popup */}
+      {(applyingJobId || applyingSuggestion) && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-xl max-w-sm w-full mx-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Did you apply?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              We noticed you visited the job posting. Did you submit an application?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  if (applyingJobId) {
+                    await fetch(`/api/jobs/${applyingJobId}/application-status`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ applicationStatus: "applied" }),
+                    });
+                    setApplyingJobId(null);
+                    fetchJobs();
+                  } else if (applyingSuggestion) {
+                    const res = await fetch("/api/jobs/save", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ ...applyingSuggestion, status: "saved" }),
+                    });
+                    if (res.ok) {
+                      const data = await res.json();
+                      await fetch(`/api/jobs/${data.job.id}/application-status`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ applicationStatus: "applied" }),
+                      });
+                    }
+                    setApplyingSuggestion(null);
+                    fetchJobs();
+                  }
+                }}
+                className="flex-1 bg-gray-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                Yes, I applied
+              </button>
+              <button
+                onClick={() => { setApplyingJobId(null); setApplyingSuggestion(null); }}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                No, just browsing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
