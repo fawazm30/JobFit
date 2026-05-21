@@ -23,6 +23,12 @@ type Job = {
   applicationStatus: string | null;
   createdAt: string;
   externalId?: string | null;
+  resumeVersionId: string | null;
+};
+
+type ResumeVersion = {
+  id: string;
+  name: string;
 };
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
@@ -40,13 +46,17 @@ export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [resumeVersions, setResumeVersions] = useState<ResumeVersion[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
   useEffect(() => {
-    if (session) fetchApplications();
+    if (session) {
+        fetchApplications();
+        fetchVersions();
+    }
   }, [session]);
 
   async function fetchApplications() {
@@ -71,6 +81,21 @@ export default function ApplicationsPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ applicationStatus: null }),
+    });
+    if (res.ok) fetchApplications();
+  }
+
+  async function fetchVersions() {
+    const res = await fetch("/api/resume/versions");
+    const data = await res.json();
+    setResumeVersions(data.versions || []);
+  }
+
+  async function updateResumeVersion(jobId: string, resumeVersionId: string) {
+    const res = await fetch(`/api/jobs/${jobId}/resume-version`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeVersionId }),
     });
     if (res.ok) fetchApplications();
   }
@@ -203,6 +228,19 @@ export default function ApplicationsPage() {
                         <option value="offer">Offer</option>
                         <option value="ghosted">Ghosted</option>
                       </select>
+
+                      <select
+                        value={job.resumeVersionId || ""}
+                        onChange={(e) => updateResumeVersion(job.id, e.target.value)}
+                        className="text-xs border border-gray-300 rounded-lg px-2 py-1 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                        >
+                        <option value="">No resume assigned</option>
+                        {resumeVersions.map((v) => (
+                            <option key={v.id} value={v.id}>
+                            {v.name}
+                            </option>
+                        ))}
+                        </select>
                       <button
                         onClick={() => removeApplication(job.id)}
                         className="text-xs text-red-400 hover:text-red-600 transition-colors"

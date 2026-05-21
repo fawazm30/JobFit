@@ -109,7 +109,11 @@ ${resumeText}`,
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { skills },
+    data: { 
+      skills,
+      resumeText,
+      resumeUrl: urlData.publicUrl,
+    },
   });
 
   return NextResponse.json({ version });
