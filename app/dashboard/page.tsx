@@ -25,6 +25,8 @@ export default function DashboardPage() {
   const [suggestionsError, setSuggestionsError] = useState("");
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState<"1" | "2">("1");
+  const [versionStats, setVersionStats] = useState<Record<string, number>>({});
+  const [resumeVersions, setResumeVersions] = useState<{id: string; name: string}[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -32,15 +34,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (session?.user?.email) {
-      fetch("/api/me")
+        fetch("/api/me")
         .then((r) => r.json())
         .then((data) => {
-          setSkills(data.skills || []);
-          setResumeUrl(data.resumeUrl || null);
-          setLoading(false);
+            setSkills(data.skills || []);
+            setResumeUrl(data.resumeUrl || null);
+            setLoading(false);
         });
+        fetchVersionStats();
+        fetchVersions();
     }
-  }, [session]);
+   }, [session]);
 
   async function addSkill() {
     if (!newSkill.trim()) return;
@@ -81,6 +85,33 @@ export default function DashboardPage() {
       setSuggestionsError(data.error || "Something went wrong.");
     }
     setGeneratingSuggestions(false);
+  }
+
+  async function fetchVersionStats() {
+    const res = await fetch("/api/applications");
+    const data = await res.json();
+    const apps = data.applications || [];
+    
+    const stats: Record<string, number> = {};
+    apps
+        .filter((a: { applicationStatus: string }) => a.applicationStatus === "interview")
+        .forEach((a: { resumeVersionId: string | null }) => {
+        if (a.resumeVersionId) {
+            stats[a.resumeVersionId] = (stats[a.resumeVersionId] || 0) + 1;
+        }
+        });
+    setVersionStats(stats);
+  }
+
+  async function fetchVersions() {
+    const res = await fetch("/api/resume/versions");
+    const data = await res.json();
+    const versions = data.versions || [];
+    setResumeVersions(versions);
+    // Use the most recent version's URL if user has no resumeUrl
+    if (versions.length > 0 && versions[0].resumeUrl) {
+        setResumeUrl((prev) => prev || versions[0].resumeUrl);
+    }
   }
 
   if (status === "loading" || loading) {
@@ -169,6 +200,33 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
+
+        {/* Resume version stats */}
+        {Object.keys(versionStats).length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Resume performance</h3>
+            <p className="text-sm text-gray-500 mb-4">Which resume version is getting you interviews.</p>
+            <div className="space-y-2">
+            {Object.entries(versionStats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([versionId, count], i) => (
+                <div key={versionId} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                    <div className="flex items-center gap-2">
+                    {i === 0 && (
+                        <span style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
+                        ⭐ Best performing
+                        </span>
+                    )}
+                    <span className="text-sm text-gray-700">
+                    {resumeVersions.find((v) => v.id === versionId)?.name || "Unknown version"}
+                    </span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">{count} interview{count !== 1 ? "s" : ""}</span>
+                </div>
+                ))}
+            </div>
+        </div>
+        )}
 
         {/* Resume suggestions section */}
         <div className="bg-white border border-gray-200 rounded-xl p-6">
