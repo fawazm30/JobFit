@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [pageCount, setPageCount] = useState<"1" | "2">("1");
   const [versionStats, setVersionStats] = useState<Record<string, number>>({});
   const [resumeVersions, setResumeVersions] = useState<{id: string; name: string}[]>([]);
+  const [jobCategories, setJobCategories] = useState<{name: string; avgScore: number; jobCount: number}[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -43,6 +44,7 @@ export default function DashboardPage() {
         });
         fetchVersionStats();
         fetchVersions();
+        fetchJobCategories();
     }
    }, [session]);
 
@@ -112,6 +114,12 @@ export default function DashboardPage() {
     if (versions.length > 0 && versions[0].resumeUrl) {
         setResumeUrl((prev) => prev || versions[0].resumeUrl);
     }
+  }
+
+  async function fetchJobCategories() {
+    const res = await fetch("/api/jobs/categories");
+    const data = await res.json();
+    setJobCategories(data.categories || []);
   }
 
   if (status === "loading" || loading) {
@@ -200,6 +208,44 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
+
+        {/* Role fit section */}
+        {jobCategories.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Best-fit role categories</h3>
+            <p className="text-sm text-gray-500 mb-4">Based on your average match scores across saved jobs.</p>
+            <div className="space-y-3">
+            {jobCategories.map((cat, i) => (
+                <div key={cat.name} className="p-3 border border-gray-100 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                    {i === 0 && (
+                        <span style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
+                        ⭐ Best fit
+                        </span>
+                    )}
+                    <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+                    <span className="text-xs text-gray-400">{cat.jobCount} job{cat.jobCount !== 1 ? "s" : ""}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">{cat.avgScore}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div
+                    className="h-1.5 rounded-full"
+                    style={{
+                        width: `${cat.avgScore}%`,
+                        backgroundColor: cat.avgScore >= 75 ? "#16a34a" : cat.avgScore >= 50 ? "#ca8a04" : "#dc2626"
+                    }}
+                    />
+                </div>
+                </div>
+            ))}
+            </div>
+            {jobCategories.length === 1 && (
+            <p className="text-xs text-gray-400 mt-3">Save jobs from more industries to see a fuller comparison.</p>
+            )}
+        </div>
+        )}
 
         {/* Resume version stats */}
         {Object.keys(versionStats).length > 0 && (
