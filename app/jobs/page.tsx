@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 
 type Job = {
   id: string;
@@ -22,6 +24,7 @@ type Job = {
   status: string;
   createdAt: string;
   externalId?: string | null;
+  coverLetter: string | null;
 };
 
 type Suggestion = {
@@ -61,13 +64,108 @@ function MatchBadge({ score }: { score: number | null }) {
     </span>
   );
 }
+function CoverLetterEditor({ jobId, initialContent }: { jobId: string; initialContent: string | null }) {
+  const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: initialContent || "",
+  });
+
+  async function generate() {
+    setGenerating(true);
+    const res = await fetch(`/api/jobs/${jobId}/generate-cover-letter`, { method: "POST" });
+    const data = await res.json();
+    if (res.ok && editor) {
+      editor.commands.setContent(data.coverLetter);
+    }
+    setGenerating(false);
+  }
+
+  async function save() {
+    setSaving(true);
+    const content = editor?.getHTML() || "";
+    await fetch(`/api/jobs/${jobId}/cover-letter`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coverLetter: content }),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function downloadDocx() {
+    const { Document, Paragraph, TextRun, Packer } = await import("docx");
+    const { saveAs } = await import("file-saver");
+    const text = editor?.getText() || "";
+    const paragraphs = text.split("\n").filter(Boolean).map(
+      (line) => new Paragraph({ children: [new TextRun(line)] })
+    );
+    const doc = new Document({ sections: [{ properties: {}, children: paragraphs }] });
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, "cover-letter.docx");
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-semibold text-gray-500">Cover letter</p>
+        <button
+          onClick={generate}
+          disabled={generating}
+          className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
+        >
+          {generating ? "Generating..." : initialContent ? "Regenerate" : "Generate"}
+        </button>
+      </div>
+
+      {(editor?.getText() || initialContent) ? (
+        <>
+          <div className="border border-gray-200 rounded-lg p-3 min-h-32 text-sm text-gray-800 mb-3 [&_.ProseMirror]:outline-none [&_.ProseMirror_p]:mb-3">
+            <EditorContent editor={editor} />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={save}
+              disabled={saving}
+              className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            >
+              {saving ? "Saving..." : saved ? "Saved!" : "Save"}
+            </button>
+            <button
+              onClick={downloadDocx}
+              className="px-3 py-1 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+            >
+              Download .docx
+            </button>
+          </div>
+        </>
+      ) : (
+        <p className="text-xs text-gray-400">Click Generate to create a cover letter for this job.</p>
+      )}
+    </div>
+  );
+}
 
 function JobRequirements({
-  jobId, requirements, editingReqs, newReqInput, onAddReq, onRemoveReq, onReqInput, onRecalculate, recalculating, matchedSkills, missingSkills, interestMatch,
+  jobId, requirements, editingReqs, newReqInput, onAddReq, onRemoveReq, onReqInput, onRecalculate, recalculating, matchedSkills, missingSkills, interestMatch, coverLetter
 }: {
-  jobId: string; requirements: string[]; editingReqs: { [id: string]: string[] }; newReqInput: { [id: string]: string };
-  onAddReq: (id: string) => void; onRemoveReq: (id: string, req: string) => void; onReqInput: (id: string, val: string) => void;
-  onRecalculate: (id: string) => void; recalculating: string | null; matchedSkills: string[]; missingSkills: string[]; interestMatch: string | null;
+  jobId: string; 
+  requirements: string[]; 
+  editingReqs: { [id: string]: string[] }; 
+  newReqInput: { [id: string]: string };
+  onAddReq: (id: string) => void; 
+  onRemoveReq: (id: string, req: string) => void; 
+  onReqInput: (id: string, val: string) => void;
+  onRecalculate: (id: string) => void; 
+  recalculating: string | null; 
+  matchedSkills: string[]; 
+  missingSkills: string[]; 
+  interestMatch: string | null;
+  coverLetter: string | null;
 }) {
   const currentReqs = editingReqs[jobId] ?? requirements;
   return (
@@ -120,6 +218,7 @@ function JobRequirements({
         <input type="text" value={newReqInput[jobId] || ""} onChange={(e) => onReqInput(jobId, e.target.value)} onKeyDown={(e) => e.key === "Enter" && onAddReq(jobId)} placeholder="Add a requirement..." className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900" />
         <button onClick={() => onAddReq(jobId)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors">Add</button>
       </div>
+      <CoverLetterEditor jobId={jobId} initialContent={coverLetter} />
     </div>
   );
 }
@@ -429,6 +528,7 @@ export default function JobsPage() {
                     matchedSkills={job.matchedSkills}
                     missingSkills={job.missingSkills}
                     interestMatch={job.interestMatch}
+                    coverLetter={job.coverLetter}
                   />
                 )}
               </div>

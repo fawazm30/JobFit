@@ -68,6 +68,8 @@ model JobPosting {
   @@unique([userId, externalId])
 
   requirements String[]
+
+  coverLetter String?
 }
 
 model Account {
