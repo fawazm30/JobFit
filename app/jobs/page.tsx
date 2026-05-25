@@ -42,29 +42,46 @@ type Suggestion = {
   interestMatch: string | null;
 };
 
-function MatchBadge({ score }: { score: number | null }) {
-  if (score === null) return null;
-  if (score >= 75) {
-    return (
-      <span style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
-        {score}% match
-      </span>
-    );
-  }
-  if (score >= 50) {
-    return (
-      <span style={{ backgroundColor: "#fef9c3", color: "#a16207" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
-        {score}% match
-      </span>
-    );
-  }
+function CircleScore({ score }: { score: number | null }) {
+  if (score === null) return (
+    <div className="w-16 h-16 rounded-full border-4 border-gray-200 flex items-center justify-center">
+      <span className="text-xs text-gray-400">N/A</span>
+    </div>
+  );
+
+  const radius = 24;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
+
   return (
-    <span style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }} className="px-2 py-0.5 rounded-full text-xs font-semibold">
-      {score}% match
-    </span>
+    <div className="flex flex-col items-center gap-1">
+      <div className="relative w-16 h-16">
+        <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r={radius} fill="none" stroke="#f3f4f6" strokeWidth="5" />
+          <circle
+            cx="32" cy="32" r={radius} fill="none"
+            stroke="url(#scoreGradient)" strokeWidth="5"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+          <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#F97316" />
+              <stop offset="100%" stopColor="#EC4899" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-black text-gray-900">{score}%</span>
+        </div>
+      </div>
+      <span className="text-xs text-gray-400">Match Score</span>
+    </div>
   );
 }
-function CoverLetterEditor({ jobId, initialContent }: { jobId: string; initialContent: string | null }) {
+
+function CoverLetterPanel({ jobId, initialContent, onClose }: { jobId: string; initialContent: string | null; onClose: () => void }) {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -110,115 +127,77 @@ function CoverLetterEditor({ jobId, initialContent }: { jobId: string; initialCo
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-semibold text-gray-500">Cover letter</p>
+    <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-full fixed right-0 top-16 bottom-0 shadow-xl z-30">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <h3 className="text-sm font-bold text-gray-900">Cover Letter</h3>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg font-bold">×</button>
+      </div>
+      <div className="flex gap-2 p-4 border-b border-gray-100">
         <button
           onClick={generate}
           disabled={generating}
-          className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          className="flex-1 py-2 rounded-lg text-xs font-medium text-white disabled:opacity-50 transition-colors"
+          style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
         >
           {generating ? "Generating..." : initialContent ? "Regenerate" : "Generate"}
         </button>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+        >
+          {saving ? "Saving..." : saved ? "Saved!" : "Save"}
+        </button>
+        <button
+          onClick={downloadDocx}
+          className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          .docx
+        </button>
       </div>
-
-      {(editor?.getText() || initialContent) ? (
-        <>
-          <div className="border border-gray-200 rounded-lg p-3 min-h-32 text-sm text-gray-800 mb-3 [&_.ProseMirror]:outline-none [&_.ProseMirror_p]:mb-3">
+      <div className="flex-1 overflow-y-auto p-4">
+        {editor?.getText() || initialContent ? (
+          <div className="text-sm text-gray-800 [&_.ProseMirror]:outline-none [&_.ProseMirror_p]:mb-3">
             <EditorContent editor={editor} />
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={save}
-              disabled={saving}
-              className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
-            >
-              {saving ? "Saving..." : saved ? "Saved!" : "Save"}
-            </button>
-            <button
-              onClick={downloadDocx}
-              className="px-3 py-1 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
-            >
-              Download .docx
-            </button>
-          </div>
-        </>
-      ) : (
-        <p className="text-xs text-gray-400">Click Generate to create a cover letter for this job.</p>
-      )}
+        ) : (
+          <p className="text-xs text-gray-400 text-center mt-8">Click Generate to create a cover letter for this job.</p>
+        )}
+      </div>
     </div>
   );
 }
 
-function JobRequirements({
-  jobId, requirements, editingReqs, newReqInput, onAddReq, onRemoveReq, onReqInput, onRecalculate, recalculating, matchedSkills, missingSkills, interestMatch, coverLetter
-}: {
-  jobId: string; 
-  requirements: string[]; 
-  editingReqs: { [id: string]: string[] }; 
-  newReqInput: { [id: string]: string };
-  onAddReq: (id: string) => void; 
-  onRemoveReq: (id: string, req: string) => void; 
-  onReqInput: (id: string, val: string) => void;
-  onRecalculate: (id: string) => void; 
-  recalculating: string | null; 
-  matchedSkills: string[]; 
-  missingSkills: string[]; 
-  interestMatch: string | null;
-  coverLetter: string | null;
-}) {
-  const currentReqs = editingReqs[jobId] ?? requirements;
+function SkeletonCard() {
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
-      <p className="text-xs font-semibold text-gray-500 mb-2">Job requirements</p>
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {currentReqs.length === 0 ? (
-          <p className="text-xs text-gray-400">No requirements extracted.</p>
-        ) : (
-          currentReqs.map((req) => (
-            <span key={req} className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-              {req}
-              <button onClick={() => onRemoveReq(jobId, req)} className="text-gray-400 hover:text-red-500 transition-colors">x</button>
-            </span>
-          ))
-        )}
-      </div>
-      {matchedSkills.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs font-semibold text-green-600 mb-1">Matched skills</p>
-          <div className="flex flex-wrap gap-1.5">
-            {matchedSkills.map((skill) => (
-              <span key={skill} style={{ backgroundColor: "#dcfce7", color: "#15803d" }} className="px-2 py-1 rounded-full text-xs font-medium">{skill}</span>
-            ))}
+    <div className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          {/* Title */}
+          <div className="h-5 bg-gray-200 rounded-full w-2/3 mb-3" />
+          {/* Company + location */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-3 bg-gray-200 rounded-full w-24" />
+            <div className="h-3 bg-gray-200 rounded-full w-32" />
+          </div>
+          {/* Skills label */}
+          <div className="h-3 bg-gray-200 rounded-full w-28 mb-2" />
+          {/* Skill chips */}
+          <div className="flex gap-2 mb-4">
+            <div className="h-6 bg-gray-200 rounded-full w-16" />
+            <div className="h-6 bg-gray-200 rounded-full w-20" />
+            <div className="h-6 bg-gray-200 rounded-full w-14" />
+          </div>
+          {/* AI summary box */}
+          <div className="rounded-xl p-4 bg-gray-100">
+            <div className="h-3 bg-gray-200 rounded-full w-24 mb-2" />
+            <div className="h-3 bg-gray-200 rounded-full w-full mb-1" />
+            <div className="h-3 bg-gray-200 rounded-full w-4/5" />
           </div>
         </div>
-      )}
-      {missingSkills.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs font-semibold text-red-600 mb-1">Missing skills</p>
-          <div className="flex flex-wrap gap-1.5">
-            {missingSkills.map((skill) => (
-              <span key={skill} style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }} className="px-2 py-1 rounded-full text-xs font-medium">{skill}</span>
-            ))}
-          </div>
-        </div>
-      )}
-      {interestMatch && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 mb-1">Interest match</p>
-          <p className="text-xs text-gray-600">{interestMatch}</p>
-        </div>
-      )}
-      <div className="mt-4 flex items-center justify-between gap-2">
-        <button onClick={() => onRecalculate(jobId)} disabled={recalculating === jobId} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors">
-          {recalculating === jobId ? "Recalculating..." : "Recalculate score"}
-        </button>
+        {/* Circle score */}
+        <div className="w-16 h-16 rounded-full bg-gray-200 shrink-0" />
       </div>
-      <div className="flex gap-2 mt-3">
-        <input type="text" value={newReqInput[jobId] || ""} onChange={(e) => onReqInput(jobId, e.target.value)} onKeyDown={(e) => e.key === "Enter" && onAddReq(jobId)} placeholder="Add a requirement..." className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900" />
-        <button onClick={() => onAddReq(jobId)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors">Add</button>
-      </div>
-      <CoverLetterEditor jobId={jobId} initialContent={coverLetter} />
     </div>
   );
 }
@@ -239,6 +218,8 @@ export default function JobsPage() {
   const [ignoredIds, setIgnoredIds] = useState<Set<string>>(new Set());
   const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
   const [applyingSuggestion, setApplyingSuggestion] = useState<Suggestion | null>(null);
+  const [activeTab, setActiveTab] = useState<"suggested" | "saved">("suggested");
+  const [coverLetterJobId, setCoverLetterJobId] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -264,6 +245,7 @@ export default function JobsPage() {
     setDiscovering(true);
     setDiscoverMsg("");
     setSuggestions([]);
+    setActiveTab("suggested");
     const res = await fetch("/api/jobs/discover", { method: "POST" });
     const data = await res.json();
     if (res.ok) {
@@ -276,6 +258,7 @@ export default function JobsPage() {
       });
       setSuggestions(sortedSuggestions);
       setDiscoverMsg(`Found ${sortedSuggestions.length} suggested jobs. Save the ones you like!`);
+      setActiveTab("suggested");
     } else {
       setDiscoverMsg(data.error || "Something went wrong.");
     }
@@ -323,7 +306,6 @@ export default function JobsPage() {
 
   function handleApplyClick(job: Job, e: React.MouseEvent) {
     e.stopPropagation();
-    // Let the link open naturally via target="_blank"
     setTimeout(() => setApplyingJobId(job.id), 500);
   }
 
@@ -365,201 +347,363 @@ export default function JobsPage() {
     );
   }
 
+  const coverLetterJob = jobs.find((j) => j.id === coverLetterJobId);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16 fixed top-0 left-0 right-0 z-40">
         <Link href="/dashboard">
-        <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
-      </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link>
-          <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900">Resume</Link>
-          <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900">Applications</Link>
+          <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
+        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Applications</Link>
+          <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Resumes</Link>
+          <Link href="/jobs" className="text-sm font-medium text-gray-900">Find Jobs</Link>
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Dashboard</Link>
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Jobs</h1>
-            <p className="text-sm text-gray-500 mt-1">{jobs.length} job{jobs.length !== 1 ? "s" : ""} saved</p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={discoverJobs} disabled={discovering} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors">
-              {discovering ? "Searching..." : "Find jobs for me"}
+      <div className={`pt-16 transition-all duration-300 ${coverLetterJobId ? "mr-96" : ""}`}>
+        <div className="max-w-4xl mx-auto px-4 py-10">
+
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">START SEARCHING</h1>
+            <button
+              onClick={discoverJobs}
+              disabled={discovering}
+              className="px-4 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50 transition-colors"
+              style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
+            >
+              {discovering ? "Searching..." : "Find Jobs"}
             </button>
-            <Link href="/jobs/new" className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">+ Add job</Link>
+            <Link
+              href="/jobs/new"
+              className="px-4 py-2 rounded-full text-sm font-medium text-white bg-gray-900 hover:bg-gray-700 transition-colors"
+            >
+              + Add Job
+            </Link>
           </div>
-        </div>
 
-        {discoverMsg && <p className="text-sm text-green-600 mb-6">{discoverMsg}</p>}
+          {discoverMsg && (
+            <p className="text-sm text-green-600 mb-6">{discoverMsg}</p>
+          )}
 
-        {/* Suggested jobs section */}
-        {suggestions.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-base font-semibold text-gray-900 mb-3">Suggested for you</h2>
-            <div className="space-y-3">
-              {suggestions.filter((s) => !ignoredIds.has(s.externalId)).map((s) => (
-                <div key={s.externalId} className="bg-white border border-blue-100 rounded-xl p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h2 className="text-sm font-semibold text-gray-900">{s.title}</h2>
-                        <MatchBadge score={s.matchScore} />
-                        <span style={{ backgroundColor: "#dbeafe", color: "#1d4ed8" }} className="px-2 py-0.5 rounded-full text-xs font-medium">Suggested</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{s.company}</p>
-                      {s.location && <p className="text-xs text-gray-400 mt-0.5">{s.location}</p>}
-                      {s.matchReason && <p className="text-xs text-gray-500 mt-2 italic">{s.matchReason}</p>}
-                      {s.requirements.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {s.requirements.slice(0, 5).map((req) => (
-                            <span key={req} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">{req}</span>
-                          ))}
-                          {s.requirements.length > 5 && <span className="px-2 py-1 text-gray-400 text-xs">+{s.requirements.length - 5} more</span>}
-                        </div>
-                      )}
-                      {(s.matchedSkills || []).length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {s.matchedSkills.map((skill) => <span key={skill} className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs">{skill}</span>)}
-                        </div>
-                      )}
-                      {(s.missingSkills || []).length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {s.missingSkills.map((skill) => <span key={skill} className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs">{skill}</span>)}
-                        </div>
-                      )}
-                      {(s.matchedSkills || []).length === 0 && (s.missingSkills || []).length === 0 && (
-                        <p className="text-xs text-gray-400 mt-2 italic">No skill match data available.</p>
-                      )}
-                      {!s.interestMatch && <p className="text-xs text-gray-400 mt-2 italic">No location/job type match data available.</p>}
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      {s.applicationLink && (
-                        <a
-                          href={s.applicationLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => {
-                            setTimeout(() => setApplyingSuggestion(s), 500);
-                          }}
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          View posting
-                        </a>
-                      )}
-                      <button onClick={() => saveJob(s)} disabled={savedIds.has(s.externalId)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors">
-                        {savedIds.has(s.externalId) ? "Saved" : "Save"}
-                      </button>
-                      <button onClick={() => ignoreSuggestion(s.externalId)} disabled={ignoredIds.has(s.externalId)} className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50 transition-colors">
-                        {ignoredIds.has(s.externalId) ? "Ignored" : "Ignore"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Tabs */}
+          <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
+            <button
+              onClick={() => setActiveTab("suggested")}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "suggested"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Suggested for you
+              {suggestions.filter((s) => !ignoredIds.has(s.externalId)).length > 0 && (
+                <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs text-white" style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}>
+                  {suggestions.filter((s) => !ignoredIds.has(s.externalId)).length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("saved")}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "saved"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Saved for you
+              {jobs.filter((j) => j.status !== "ignored").length > 0 && (
+                <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-gray-200 text-gray-600">
+                  {jobs.filter((j) => j.status !== "ignored").length}
+                </span>
+              )}
+            </button>
           </div>
-        )}
 
-        {/* Saved jobs section */}
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Saved jobs</h2>
-        {jobs.filter((job) => job.status !== "ignored").length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-            <p className="text-gray-400 text-sm mb-4">No saved jobs yet.</p>
-            <div className="flex gap-2 justify-center">
-              <button onClick={discoverJobs} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Find jobs for me</button>
-              <Link href="/jobs/new" className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">Add manually</Link>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {jobs.filter((job) => job.status !== "ignored").map((job) => (
-              <div key={job.id} className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
-                <div className="flex items-start justify-between gap-4 cursor-pointer" onClick={() => toggleExpand(job.id)}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h2 className="text-sm font-semibold text-gray-900">{job.title}</h2>
-                      <MatchBadge score={job.matchScore} />
-                    </div>
-                    <p className="text-sm text-gray-600">{job.company}</p>
-                    {job.location && <p className="text-xs text-gray-400 mt-0.5">{job.location}</p>}
-                    {job.matchReason && <p className="text-xs text-gray-500 mt-2 italic">{job.matchReason}</p>}
-                  </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    {job.applicationLink && (
-                      <a
-                        href={job.applicationLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => handleApplyClick(job, e)}
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        Apply
-                      </a>
-                    )}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); ignoreJob(job.id); }}
-                      className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors"
-                    >
-                      {job.status === "ignored" ? "Ignored" : "Ignore"}
-                    </button>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      job.status === "applied" ? "bg-blue-100 text-blue-700" :
-                      job.status === "interviewing" ? "bg-purple-100 text-purple-700" :
-                      job.status === "offered" ? "bg-green-100 text-green-700" :
-                      job.status === "rejected" ? "bg-red-100 text-red-700" :
-                      "bg-gray-100 text-gray-600"
-                    }`}>
-                      {job.status}
-                    </span>
-                    <span className="text-xs text-gray-400">{expandedId === job.id ? "▲" : "▼"}</span>
-                  </div>
-                </div>
-                {expandedId === job.id && (
-                  <JobRequirements
-                    jobId={job.id}
-                    requirements={job.requirements}
-                    editingReqs={editingReqs}
-                    newReqInput={newReqInput}
-                    onAddReq={addReq}
-                    onRemoveReq={removeReq}
-                    onReqInput={(id, val) => setNewReqInput((prev) => ({ ...prev, [id]: val }))}
-                    onRecalculate={recalculateScore}
-                    recalculating={recalculating}
-                    matchedSkills={job.matchedSkills}
-                    missingSkills={job.missingSkills}
-                    interestMatch={job.interestMatch}
-                    coverLetter={job.coverLetter}
-                  />
-                )}
+          {/* Suggested tab */}
+          {activeTab === "suggested" && (
+          <div className="space-y-4">
+            {discovering ? (
+              // Show 5 skeleton cards while searching
+              <>
+                {[...Array(5)].map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </>
+            ) : suggestions.filter((s) => !ignoredIds.has(s.externalId)).length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+                <p className="text-gray-400 text-sm mb-4">No suggestions yet. Click "Find Jobs" to discover jobs!</p>
+                <button
+                  onClick={discoverJobs}
+                  disabled={discovering}
+                  className="px-4 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
+                  style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
+                >
+                  Find Jobs
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+              ) : (
+                suggestions.filter((s) => !ignoredIds.has(s.externalId)).map((s) => (
+                  <div key={s.externalId} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg font-bold text-gray-900 mb-1">{s.title}</h2>
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                          <img src="/case.svg" alt="" className="w-4 h-4 opacity-40" />
+                          <span>{s.company}</span>
+                          {s.location && (
+                            <>
+                              <span>·</span>
+                              <span>{s.location}</span>
+                            </>
+                          )}
+                        </div>
 
-        {/* Ignored jobs section */}
-        {jobs.filter((job) => job.status === "ignored").length > 0 && (
-          <div className="mt-10">
-            <h2 className="text-base font-semibold text-gray-400 mb-3">
-              Ignored jobs ({jobs.filter((job) => job.status === "ignored").length})
-            </h2>
-            <div className="space-y-2">
-              {jobs.filter((job) => job.status === "ignored").map((job) => (
-                <div key={job.id} className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">{job.title}</p>
-                    <p className="text-xs text-gray-400">{job.company}</p>
+                        {/* Skills */}
+                        {s.matchedSkills?.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-2">Matching Skills</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {s.matchedSkills.map((skill) => (
+                                <span key={skill} className="px-3 py-1 rounded-full text-xs font-medium border border-green-300 text-green-700 bg-green-50">{skill}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {s.missingSkills?.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-2">Missing Skills</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {s.missingSkills.map((skill) => (
+                                <span key={skill} className="px-3 py-1 rounded-full text-xs font-medium border border-red-300 text-red-600 bg-red-50">{skill}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* AI Summary */}
+                        {s.matchReason && (
+                          <div className="rounded-xl p-4 mb-4" style={{ background: "linear-gradient(135deg, #FFF7ED, #FDF2F8)" }}>
+                            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: "#F97316" }}>AI Summary</p>
+                            <p className="text-sm text-gray-700">{s.matchReason}</p>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => saveJob(s)}
+                            disabled={savedIds.has(s.externalId)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-colors"
+                            style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
+                          >
+                            {savedIds.has(s.externalId) ? "Saved" : "Save Job"}
+                          </button>
+                          {s.applicationLink && (
+                            <a
+                              href={s.applicationLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => setTimeout(() => setApplyingSuggestion(s), 500)}
+                              className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              View Full Posting
+                            </a>
+                          )}
+                          <button
+                            onClick={() => ignoreSuggestion(s.externalId)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            Ignore
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Circle score */}
+                      <div className="shrink-0">
+                        <CircleScore score={s.matchScore} />
+                      </div>
+                    </div>
                   </div>
-                  <button onClick={() => unignoreJob(job.id)} className="px-3 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors">
-                    Unignore
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Saved tab */}
+          {activeTab === "saved" && (
+            <div className="space-y-4">
+              {jobs.filter((job) => job.status !== "ignored").length === 0 ? (
+                <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+                  <p className="text-gray-400 text-sm mb-4">No saved jobs yet.</p>
+                  <div className="flex gap-2 justify-center">
+                    <button onClick={discoverJobs} className="px-4 py-2 rounded-full text-sm font-medium text-white" style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}>Find Jobs</button>
+                    <Link href="/jobs/new" className="px-4 py-2 rounded-full text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 transition-colors">Add manually</Link>
+                  </div>
+                </div>
+              ) : (
+                jobs.filter((job) => job.status !== "ignored").map((job) => (
+                  <div key={job.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors">
+                    <div
+                      className="flex items-start justify-between gap-4 cursor-pointer"
+                      onClick={() => toggleExpand(job.id)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg font-bold text-gray-900 mb-1">{job.title}</h2>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <img src="/case.svg" alt="" className="w-4 h-4 opacity-40" />
+                          <span>{job.company}</span>
+                          {job.location && (
+                            <>
+                              <span>·</span>
+                              <span>{job.location}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex flex-col items-center gap-2">
+                        <CircleScore score={job.matchScore} />
+                        <span className="text-xs text-gray-400">{expandedId === job.id ? "▲ less" : "▼ more"}</span>
+                      </div>
+                    </div>
+
+                    {/* Expanded */}
+                    {expandedId === job.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        {/* Skills */}
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          {job.matchedSkills.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-2">Matching Skills</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {job.matchedSkills.map((skill) => (
+                                  <span key={skill} className="px-3 py-1 rounded-full text-xs font-medium border border-green-300 text-green-700 bg-green-50">{skill}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {job.missingSkills.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-2">Missing Skills</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {job.missingSkills.map((skill) => (
+                                  <span key={skill} className="px-3 py-1 rounded-full text-xs font-medium border border-red-300 text-red-600 bg-red-50">{skill}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* AI Summary */}
+                        {job.matchReason && (
+                          <div className="rounded-xl p-4 mb-4" style={{ background: "linear-gradient(135deg, #FFF7ED, #FDF2F8)" }}>
+                            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: "#F97316" }}>AI Summary</p>
+                            <p className="text-sm text-gray-700">{job.matchReason}</p>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setCoverLetterJobId(job.id); }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
+                            style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
+                          >
+                            Generate Cover Letter
+                          </button>
+                          {job.applicationLink && (
+                              <a
+                                href={job.applicationLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => handleApplyClick(job, e)}
+                                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                View Full Posting
+                              </a>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); ignoreJob(job.id); }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            Ignore
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); recalculateScore(job.id); }}
+                            disabled={recalculating === job.id}
+                            className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                          >
+                            {recalculating === job.id ? "Recalculating..." : "Recalculate Score"}
+                          </button>
+                        </div>
+
+                        {/* Requirements editor */}
+                        <div className="mt-4">
+                          <p className="text-xs font-semibold text-gray-500 mb-2">Job requirements</p>
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {(editingReqs[job.id] ?? job.requirements).map((req) => (
+                              <span key={req} className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                {req}
+                                <button onClick={() => removeReq(job.id, req)} className="text-gray-400 hover:text-red-500">×</button>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newReqInput[job.id] || ""}
+                              onChange={(e) => setNewReqInput((prev) => ({ ...prev, [job.id]: e.target.value }))}
+                              onKeyDown={(e) => e.key === "Enter" && addReq(job.id)}
+                              placeholder="Add a requirement..."
+                              className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-orange-400"
+                            />
+                            <button onClick={() => addReq(job.id)} className="px-3 py-1 text-white rounded-lg text-xs font-medium" style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}>Add</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+
+              {/* Ignored jobs */}
+              {jobs.filter((job) => job.status === "ignored").length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-3">
+                    Ignored ({jobs.filter((job) => job.status === "ignored").length})
+                  </h3>
+                  <div className="space-y-2">
+                    {jobs.filter((job) => job.status === "ignored").map((job) => (
+                      <div key={job.id} className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">{job.title}</p>
+                          <p className="text-xs text-gray-400">{job.company}</p>
+                        </div>
+                        <button onClick={() => unignoreJob(job.id)} className="px-3 py-1 text-white rounded-lg text-xs font-medium" style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}>
+                          Unignore
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Cover letter side panel */}
+      {coverLetterJobId && coverLetterJob && (
+        <CoverLetterPanel
+          jobId={coverLetterJobId}
+          initialContent={coverLetterJob.coverLetter}
+          onClose={() => setCoverLetterJobId(null)}
+        />
+      )}
 
       {/* Apply confirmation popup */}
       {(applyingJobId || applyingSuggestion) && (
@@ -598,7 +742,8 @@ export default function JobsPage() {
                     fetchJobs();
                   }
                 }}
-                className="flex-1 bg-gray-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+                className="flex-1 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
               >
                 Yes, I applied
               </button>
