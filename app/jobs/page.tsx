@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { signOut } from "next-auth/react";
 
 type Job = {
   id: string;
@@ -361,6 +362,12 @@ export default function JobsPage() {
           <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Resumes</Link>
           <Link href="/jobs" className="text-sm font-medium text-gray-900">Find Jobs</Link>
           <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Dashboard</Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            Log out
+          </button>
         </div>
       </nav>
 
