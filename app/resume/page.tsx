@@ -67,20 +67,19 @@ export default function ResumePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="max-w-xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">Resume versions</h1>
-            <p className="text-gray-500">Upload and manage multiple resume versions.</p>
-          </div>
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            ← Back
-          </Link>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+  <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16">
+    <Link href="/dashboard">
+      <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
+    </Link>
+    <div className="flex items-center gap-4">
+      <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Dashboard</Link>
+      <Link href="/jobs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Jobs</Link>
+      <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Applications</Link>
+    </div>
+  </nav>
+
+  <div className="max-w-xl mx-auto px-4 py-12">
 
         {/* Upload new version */}
         <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
