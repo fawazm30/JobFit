@@ -138,8 +138,10 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-900">JobFit</h1>
+      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16">
+        <Link href="/dashboard">
+        <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
+      </Link>
         <div className="flex items-center gap-4">
           <Link href="/jobs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Jobs</Link>
           <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Applications</Link>
