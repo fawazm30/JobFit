@@ -362,6 +362,7 @@ export default function JobsPage() {
           <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Resumes</Link>
           <Link href="/jobs" className="text-sm font-medium text-gray-900">Find Jobs</Link>
           <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Dashboard</Link>
+          <Link href="/profile" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Profile</Link>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
