@@ -30,9 +30,11 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* Navbar */}
       <nav className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <img src="/jobfit_logo.png" alt="JobFit" className="h-10 w-auto" />
-          <span className="text-lg font-bold text-gray-900">JobFit</span>
+        <div className="flex items-center gap-0">
+          <img src="/logo_solo.png" alt="JobFit" className="h-10 w-auto" />
+          <span className="text-lg font-medium text-gray-600" style={{ fontFamily: "var(--font-poppins)" }}>
+            JobFit
+          </span>
         </div>
         <div className="flex items-center gap-4">
           <Link
@@ -43,7 +45,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/login"
-            className="px-4 py-2 rounded-full text-sm font-semibold text-white transition-colors"
+            className="px-4 py-2 rounded-full text-sm font-medium text-white transition-colors"
             style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
           >
             Get started free
@@ -54,7 +56,7 @@ export default function LandingPage() {
       {/* Hero section */}
       <section className="max-w-4xl mx-auto px-4 pt-24 pb-20 text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border"
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 border"
           style={{ borderColor: "#F97316", color: "#F97316", backgroundColor: "#FFF7ED" }}
         >
           <span>✦</span> AI-Powered Job Matching
@@ -90,7 +92,7 @@ export default function LandingPage() {
           </Link>
           <a
             href="#features"
-            className="px-8 py-3.5 rounded-full text-base font-semibold text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="px-8 py-3.5 rounded-full text-base font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors"
           >
             See how it works
           </a>
@@ -229,9 +231,11 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-8 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/jobfit_logo.png" alt="JobFit" className="h-8 w-auto" />
-            <span className="text-sm font-bold text-gray-900">JobFit</span>
+          <div className="flex items-center gap-0">
+            <img src="/logo_solo.png" alt="JobFit" className="h-8 w-auto" />
+            <span className="text-lg font-medium text-gray-600" style={{ fontFamily: "var(--font-poppins)" }}>
+              JobFit
+            </span>
           </div>
           <p className="text-xs text-gray-400">Built by Fawaz Mansoor · {new Date().getFullYear()}</p>
         </div>

@@ -46,8 +46,11 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16">
-        <div className="flex items-center gap-2">
-          <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
+        <div className="flex items-center gap-0">
+          <img src="/logo_solo.png" alt="JobFit" className="h-14 w-auto" />
+          <span className="text-lg font-medium text-gray-600" style={{ fontFamily: "var(--font-poppins)" }}>
+              JobFit
+            </span>
         </div>
       </nav>
 
