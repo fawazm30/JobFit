@@ -2,23 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const INDUSTRIES = [
-  "Technology",
-  "Healthcare",
-  "Education",
-  "Finance & Banking",
-  "Legal",
-  "Engineering",
-  "Trades & Construction",
-  "Social Services",
-  "Marketing & Communications",
-  "Retail & Hospitality",
-  "Government & Public Service",
-  "Arts & Media",
-  "Science & Research",
-  "Transportation & Logistics",
-  "Other",
+  "Technology", "Healthcare", "Education", "Finance & Banking",
+  "Legal", "Engineering", "Trades & Construction", "Social Services",
+  "Marketing & Communications", "Retail & Hospitality",
+  "Government & Public Service", "Arts & Media", "Science & Research",
+  "Transportation & Logistics", "Other",
 ];
 
 const PROVINCES: Record<string, string[]> = {
@@ -37,35 +28,26 @@ const PROVINCES: Record<string, string[]> = {
 const SPECIAL_LOCATIONS = ["Remote", "Canada-wide"];
 
 const JOB_TYPES = [
-  { value: "internship", label: "Internship" },
-  { value: "co-op", label: "Co-op" },
-  { value: "part-time", label: "Part-time" },
-  { value: "full-time", label: "Full-time" },
-  { value: "new-grad", label: "New Grad" },
-  { value: "contract", label: "Contract" },
-  { value: "volunteer", label: "Volunteer" },
+  { value: "internship", label: "Internship", icon: "/intern.svg" },
+  { value: "co-op", label: "Co-op", icon: "/coop.svg" },
+  { value: "part-time", label: "Part-time", icon: "/part_time.svg" },
+  { value: "full-time", label: "Full-time", icon: "/case.svg" },
+  { value: "new-grad", label: "New Grad", icon: "/new_grad.svg" },
+  { value: "contract", label: "Contract", icon: "/contract.svg" },
+  { value: "volunteer", label: "Volunteer", icon: "/volunteer.svg" },
 ];
 
-const STEPS = ["Role", "Location", "Job Type", "Resume"];
+const STEPS = ["Industry", "Location", "Job Type", "Resume"];
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(0);
-
-  // Role
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [jobTitle, setJobTitle] = useState("");
-
-  // Location
   const [expandedProvince, setExpandedProvince] = useState<string | null>(null);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-
-  // Job type
   const [jobTypes, setJobTypes] = useState<string[]>([]);
-
-  // Resume
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeName, setResumeName] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -90,17 +72,20 @@ export default function OnboardingPage() {
 
   function nextStep() {
     setError("");
-    if (step === 0) {
-      if (selectedIndustries.length === 0) return setError("Please select at least one industry.");
+    if (step === 0 && selectedIndustries.length === 0) {
+      return setError("Please select at least one industry.");
     }
-    if (step === 1 && selectedLocations.length === 0)
+    if (step === 1 && selectedLocations.length === 0) {
       return setError("Please select at least one location.");
+    }
+    if (step === 2 && jobTypes.length === 0) {
+      return setError("Please select at least one job type.");
+    }
     setStep((s) => s + 1);
   }
 
   async function handleSubmit() {
     setError("");
-    if (jobTypes.length === 0) return setError("Please select at least one job type.");
     setLoading(true);
 
     const res = await fetch("/api/onboarding", {
@@ -131,133 +116,138 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="max-w-xl mx-auto">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Logo */}
+      <div className="flex justify-center pt-8 pb-4">
+        <Link href="/">
+          <img src="/jobfit_logo.png" alt="JobFit" className="h-20 w-auto" />
+        </Link>
+      </div>
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-            Let's set up your profile
-          </h1>
-          <p className="text-gray-500">Tell us what you're looking for.</p>
-        </div>
-
-        {/* Progress */}
-        <div className="flex items-center gap-2 mb-10">
+      {/* Progress bar */}
+      <div className="max-w-lg mx-auto w-full px-4 mb-8">
+        <div className="flex items-center justify-between mb-2">
           {STEPS.map((label, i) => (
-            <div key={label} className="flex items-center gap-2">
-              <div className={`flex items-center gap-2 text-sm font-medium ${
-                i === step ? "text-gray-900" : i < step ? "text-green-600" : "text-gray-400"
-              }`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+            <div key={label} className="flex flex-col items-center gap-1 flex-1">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+                style={
                   i < step
-                    ? "bg-green-600 text-white"
+                    ? { background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white" }
                     : i === step
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-200 text-gray-400"
-                }`}>
-                  {i < step ? "✓" : i + 1}
-                </div>
-                {label}
+                    ? { background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white", boxShadow: "0 0 0 4px rgba(249,115,22,0.2)" }
+                    : { backgroundColor: "#e5e7eb", color: "#9ca3af" }
+                }
+              >
+                {i < step ? "✓" : i + 1}
               </div>
-              {i < STEPS.length - 1 && (
-                <div className="w-8 h-px bg-gray-300 mx-1" />
-              )}
+              <span className={`text-xs font-medium ${i === step ? "text-gray-900" : "text-gray-400"}`}>
+                {label}
+              </span>
             </div>
           ))}
         </div>
+        {/* Progress line */}
+        <div className="relative h-1 bg-gray-200 rounded-full mt-1">
+          <div
+            className="absolute left-0 top-0 h-1 rounded-full transition-all duration-500"
+            style={{
+              width: `${(step / (STEPS.length - 1)) * 100}%`,
+              background: "linear-gradient(135deg, #F97316, #EC4899)"
+            }}
+          />
+        </div>
+      </div>
 
-        {/* Step 0 - Role */}
+      {/* Content */}
+      <div className="max-w-lg mx-auto w-full px-4 flex-1">
+
+        {/* Step 0 — Industry */}
         {step === 0 && (
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Industry</h2>
-              <p className="text-sm text-gray-500 mb-4">Select all that apply.</p>
-              <div className="flex flex-wrap gap-2">
-                {INDUSTRIES.map((ind) => (
-                  <button
-                    key={ind}
-                    type="button"
-                    onClick={() => toggleIndustry(ind)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                      selectedIndustries.includes(ind)
-                        ? "bg-gray-900 text-white border-gray-900"
-                        : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    {ind}
-                  </button>
-                ))}
-              </div>
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">What industry are you in?</h1>
+            <p className="text-gray-400 text-sm mb-6">Select all that apply.</p>
+
+            <div className="flex flex-wrap gap-2 mb-6">
+              {INDUSTRIES.map((ind) => (
+                <button
+                  key={ind}
+                  onClick={() => toggleIndustry(ind)}
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                  style={
+                    selectedIndustries.includes(ind)
+                      ? { background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white" }
+                      : { backgroundColor: "white", color: "#4b5563", border: "1px solid #e5e7eb" }
+                  }
+                >
+                  {ind}
+                </button>
+              ))}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Job title</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                What role are you looking for? Leaving this blank will let us find jobs based on your resume and industry. (e.g. Registered Nurse, Software Developer, Social Worker)
-              </p>
+            <div className="bg-white border border-gray-200 rounded-2xl p-5">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Job title <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
               <input
                 type="text"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
-                placeholder="Enter your desired job title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                placeholder="e.g. Software Developer, Registered Nurse"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
+              <p className="text-xs text-gray-400 mt-2">Leave blank to find jobs based on your resume and industry.</p>
             </div>
           </div>
         )}
 
-        {/* Step 1 - Location */}
+        {/* Step 1 — Location */}
         {step === 1 && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Preferred locations</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Select provinces to expand cities, or choose a special option.
-            </p>
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">Where are you looking to work?</h1>
+            <p className="text-gray-400 text-sm mb-6">Select all that apply.</p>
 
+            {/* Special locations */}
             <div className="flex gap-2 mb-4">
               {SPECIAL_LOCATIONS.map((loc) => (
                 <button
                   key={loc}
-                  type="button"
                   onClick={() => toggleLocation(loc)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                  style={
                     selectedLocations.includes(loc)
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-                  }`}
+                      ? { background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white" }
+                      : { backgroundColor: "white", color: "#4b5563", border: "1px solid #e5e7eb" }
+                  }
                 >
                   {loc}
                 </button>
               ))}
             </div>
 
-            <div className="border-t border-gray-100 pt-4 space-y-2">
-              {Object.entries(PROVINCES).map(([province, cities]) => (
-                <div key={province}>
+            {/* Province accordion */}
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-4">
+              {Object.entries(PROVINCES).map(([province, cities], idx) => (
+                <div key={province} className={idx > 0 ? "border-t border-gray-100" : ""}>
                   <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedProvince(expandedProvince === province ? null : province)
-                    }
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                    onClick={() => setExpandedProvince(expandedProvince === province ? null : province)}
+                    className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
                   >
                     <span>{province}</span>
-                    <span className="text-gray-400">{expandedProvince === province ? "▲" : "▼"}</span>
+                    <span className="text-gray-400 text-xs">{expandedProvince === province ? "▲" : "▼"}</span>
                   </button>
-
                   {expandedProvince === province && (
-                    <div className="flex flex-wrap gap-2 px-3 pt-2 pb-3">
+                    <div className="flex flex-wrap gap-2 px-5 pb-4">
                       {cities.map((city) => (
                         <button
                           key={city}
-                          type="button"
                           onClick={() => toggleLocation(city)}
-                          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                          className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                          style={
                             selectedLocations.includes(city)
-                              ? "bg-gray-900 text-white border-gray-900"
-                              : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-                          }`}
+                              ? { background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white" }
+                              : { backgroundColor: "#f3f4f6", color: "#4b5563" }
+                          }
                         >
                           {city}
                         </button>
@@ -268,127 +258,145 @@ export default function OnboardingPage() {
               ))}
             </div>
 
+            {/* Selected locations */}
             {selectedLocations.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500 mb-2">Selected:</p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedLocations.map((loc) => (
-                    <span key={loc} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                      {loc} ×
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedLocations.map((loc) => (
+                  <span
+                    key={loc}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium text-white"
+                    style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
+                  >
+                    {loc}
+                    <button onClick={() => toggleLocation(loc)} className="ml-1 opacity-80 hover:opacity-100">×</button>
+                  </span>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        {/* Step 2 - Job Type */}
+        {/* Step 2 — Job Type */}
         {step === 2 && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Job type</h2>
-            <p className="text-sm text-gray-500 mb-4">What kind of position are you after?</p>
-            <div className="flex flex-wrap gap-2">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">What type of role are you looking for?</h1>
+            <p className="text-gray-400 text-sm mb-6">Select all that apply.</p>
+
+            <div className="grid grid-cols-2 gap-3">
               {JOB_TYPES.map((jt) => (
                 <button
                   key={jt.value}
-                  type="button"
                   onClick={() => toggleJobType(jt.value)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  className="flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-medium transition-all border"
+                  style={
                     jobTypes.includes(jt.value)
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-                  }`}
+                      ? { background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white", border: "none" }
+                      : { backgroundColor: "white", color: "#4b5563", borderColor: "#e5e7eb" }
+                  }
                 >
-                  {jt.label}
+                  <img
+                    src={jt.icon}
+                    alt={jt.label}
+                    className="w-5 h-5"
+                    style={jobTypes.includes(jt.value) ? { filter: "brightness(0) invert(1)" } : { filter: "invert(40%)" }}
+                  />
+                  <span>{jt.label}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 3 - Resume */}
+        {/* Step 3 — Resume */}
         {step === 3 && (
-          <div className="bg-white border border-gray-200 rounded-xl p-8">
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Upload your resume</h2>
-            <p className="text-sm text-gray-500 mb-6">Optional — you can always do this later.</p>
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">Upload your resume</h1>
+            <p className="text-gray-400 text-sm mb-6">Optional — you can always do this later.</p>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Resume name
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Resume name</label>
+                <input
+                  type="text"
+                  value={resumeName}
+                  onChange={(e) => setResumeName(e.target.value)}
+                  placeholder="e.g. Software Developer Resume"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
+
+              <label className={`flex flex-col items-center justify-center w-full h-40 rounded-xl cursor-pointer transition-colors ${
+                resumeFile ? "bg-orange-50 border-2 border-orange-400" : "bg-gray-100 hover:bg-gray-200"
+              }`}>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  className="hidden"
+                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                />
+                {resumeFile ? (
+                  <>
+                    <svg className="w-8 h-8 text-orange-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-sm font-medium text-gray-900">{resumeFile.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">Click to change</p>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <p className="text-sm font-medium text-gray-700">Click to upload your resume</p>
+                    <p className="text-xs text-gray-400 mt-1">PDF only</p>
+                  </>
+                )}
               </label>
-              <input
-                type="text"
-                value={resumeName}
-                onChange={(e) => setResumeName(e.target.value)}
-                placeholder="e.g. Software Developer Resume"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
             </div>
-
-            <label className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-              resumeFile ? "border-gray-900 bg-gray-50" : "border-gray-300 hover:border-gray-400"
-            }`}>
-              <input
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-              />
-              {resumeFile ? (
-                <>
-                  <span className="text-2xl mb-2">📄</span>
-                  <p className="text-sm font-medium text-gray-900">{resumeFile.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">Click to change file</p>
-                </>
-              ) : (
-                <>
-                  <span className="text-2xl mb-2">⬆️</span>
-                  <p className="text-sm font-medium text-gray-700">Click to upload your resume</p>
-                  <p className="text-xs text-gray-500 mt-1">PDF only</p>
-                </>
-              )}
-            </label>
           </div>
         )}
 
+        {/* Error */}
         {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
 
-        {/* Navigation */}
-        <div className="flex gap-3 mt-8">
+        {/* Navigation buttons */}
+        <div className="flex gap-3 mt-8 mb-12 items-center justify-between">
           {step > 0 && (
             <button
-              type="button"
-              onClick={() => setStep((s) => s - 1)}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              onClick={() => { setStep((s) => s - 1); setError(""); }}
+              className="p-3 rounded-xl hover:bg-gray-100 transition-colors flex items-center justify-center"
             >
-              ← Back
+              <img
+                src="/back_arrow.svg"
+                alt="Back"
+                className="w-5 h-5"
+                style={{ filter: "invert(48%) sepia(79%) saturate(2476%) hue-rotate(330deg) brightness(118%) contrast(119%)" }}
+              />
             </button>
           )}
           {step < STEPS.length - 1 ? (
             <button
-              type="button"
               onClick={nextStep}
-              className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors"
+              className="px-6 py-2.5 rounded-full text-sm font-bold text-white transition-colors"
+              style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
             >
               Next →
             </button>
           ) : (
-            <div className="flex-1 flex flex-col gap-2">
+            <div className="flex flex-col gap-2 flex-1">
               <button
-                type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition-colors"
+                style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
               >
-                {loading ? "Saving..." : resumeFile ? "Upload & continue →" : "Continue to dashboard →"}
+                {loading ? "Setting up your account..." : resumeFile ? "Upload & continue →" : "Continue to dashboard →"}
               </button>
               {!resumeFile && (
                 <button
-                  type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="w-full text-gray-500 text-sm py-2 hover:text-gray-700 transition-colors"
+                  className="w-full text-gray-400 text-sm py-2 hover:text-gray-600 transition-colors"
                 >
                   Skip for now
                 </button>
