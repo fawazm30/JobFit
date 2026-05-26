@@ -4,10 +4,12 @@ import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
+import dynamic from "next/dynamic";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const ResumePreview = dynamic(() => import("@/app/components/ResumePreview"), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-100 rounded-xl animate-pulse" />,
+});
 
 type ResumeSuggestion = {
   category: string;
@@ -52,7 +54,6 @@ export default function DashboardPage() {
       fetch("/api/me")
         .then((r) => r.json())
         .then((data) => {
-          // If user hasn't completed onboarding, redirect them
           if (!data.industries || data.industries.length === 0) {
             router.push("/onboarding");
             return;
@@ -94,7 +95,6 @@ export default function DashboardPage() {
     setSuggestionsError("");
     setProgress(10);
 
-    // Simulate progress crawling to 85%
     progressRef.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 85) {
@@ -112,7 +112,6 @@ export default function DashboardPage() {
     });
     const data = await res.json();
 
-    // Jump to 100%
     clearInterval(progressRef.current!);
     setProgress(100);
 
@@ -201,7 +200,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
-
       <div className="max-w-4xl mx-auto px-4 py-10">
         {/* Title */}
         <h1 className="text-4xl font-black text-gray-900 mb-8 tracking-tight">DASHBOARD</h1>
@@ -209,22 +207,14 @@ export default function DashboardPage() {
         {/* Resume Preview with switcher */}
         <div className="relative mb-10">
           <h2 className="text-xl text-gray-500 mb-4">Your Resume</h2>
-          {/* Resume card */}
           <div
             className="bg-white rounded-t-xl overflow-hidden border border-gray-200"
             style={{ height: "400px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}
           >
             {resumeUrl ? (
               <div className="relative w-full h-full bg-white overflow-y-auto">
-                <Document file={resumeUrl}>
-                  <Page
-                    pageNumber={1}
-                    width={760}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
-                </Document>
-                {/* Shadow inside card overlaying bottom of resume */}
+                {/* Use dynamic ResumePreview instead of Document/Page directly */}
+                <ResumePreview url={resumeUrl} />
                 <div
                   className="sticky bottom-0 left-0 right-0 h-16 pointer-events-none"
                   style={{ background: "linear-gradient(to top, rgba(0,0,0,0.08), transparent)" }}
@@ -244,10 +234,8 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Line below card */}
           <div className="h-0.5 bg-gray-300 w-full" />
 
-          {/* Resume switcher toggle button */}
           <button
             onClick={() => setShowResumeSwitcher(!showResumeSwitcher)}
             className="absolute right-0 top-48 -translate-y-1/2 translate-x-4 w-9 h-9 flex items-center justify-center shadow-lg z-10 rounded-full border-2 border-white text-base"
@@ -256,7 +244,6 @@ export default function DashboardPage() {
             {showResumeSwitcher ? "›" : "‹"}
           </button>
 
-          {/* Resume switcher panel */}
           {showResumeSwitcher && (
             <div className="absolute right-0 top-0 translate-x-full ml-4 w-56 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-20">
               <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">Switch resume</p>
@@ -325,7 +312,6 @@ export default function DashboardPage() {
 
         {/* Top Resumes + Best-fit Categories */}
         <div className="grid grid-cols-2 gap-6 mb-10">
-          {/* Top Resumes */}
           <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h2 className="text-base font-bold text-gray-900 mb-4">Top Resumes</h2>
             {Object.keys(versionStats).length === 0 ? (
@@ -349,7 +335,6 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Best-fit Categories */}
           <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h2 className="text-base font-bold text-gray-900 mb-4">Best-fit Categories for you</h2>
             {jobCategories.length === 0 ? (
@@ -368,10 +353,7 @@ export default function DashboardPage() {
                     <div className="w-full bg-orange-100 rounded-full h-1.5">
                       <div
                         className="h-1.5 rounded-full"
-                        style={{
-                          width: `${cat.avgScore}%`,
-                          background: "linear-gradient(135deg, #F97316, #EC4899)"
-                        }}
+                        style={{ width: `${cat.avgScore}%`, background: "linear-gradient(135deg, #F97316, #EC4899)" }}
                       />
                     </div>
                   </div>
@@ -408,24 +390,18 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              {/* Generate button with progress bar */}
               <button
                 onClick={generateSuggestions}
                 disabled={generatingSuggestions}
                 className="relative px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-100 transition-colors overflow-hidden min-w-52"
                 style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
               >
-                {/* Progress fill overlay */}
                 {generatingSuggestions && (
                   <div
                     className="absolute left-0 top-0 h-full transition-all duration-300 rounded-lg"
-                    style={{
-                      width: `${progress}%`,
-                      background: "rgba(255,255,255,0.2)",
-                    }}
+                    style={{ width: `${progress}%`, background: "rgba(255,255,255,0.2)" }}
                   />
                 )}
-                {/* Button text */}
                 <span className="relative z-10">
                   {generatingSuggestions
                     ? `${Math.round(progress)}% ${progress < 40 ? "Analyzing resume..." : progress < 70 ? "Looking over skills..." : progress < 90 ? "Almost there..." : "Done!"}`
