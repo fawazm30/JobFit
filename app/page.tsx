@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import BlobCursor from "@/app/components/BlobCursor";
 
 const features = [
   {
@@ -54,48 +55,57 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero section */}
-      <section className="max-w-4xl mx-auto px-4 pt-24 pb-20 text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 border"
-          style={{ borderColor: "#F97316", color: "#F97316", backgroundColor: "#FFF7ED" }}
-        >
-          <span>✦</span> AI-Powered Job Matching
+      <section className="relative overflow-hidden max-w-4xl mx-auto px-4 pt-24 pb-20 text-center">
+        {/* Blob cursor — behind all content, clips at hero boundary */}
+        <div className="absolute inset-0 pointer-events-none">
+          <BlobCursor
+            blobType="circle"
+            fillColor="#F97316"
+            trailCount={3}
+            sizes={[60, 125, 75]}
+            innerSizes={[20, 35, 25]}
+            innerColor="rgba(255,255,255,0.8)"
+            opacities={[0.3, 0.2, 0.25]}
+            shadowColor="rgba(249,115,22,0.3)"
+            shadowBlur={5}
+            shadowOffsetX={0}
+            shadowOffsetY={0}
+            filterStdDeviation={30}
+            useFilter={true}
+            fastDuration={0.1}
+            slowDuration={0.5}
+            zIndex={0}
+          />
         </div>
 
-        {/* Headline */}
-        <h1 className="text-6xl font-black text-gray-900 tracking-tight mb-6 leading-tight">
-          Find Jobs That{" "}
-          <span
-            style={{
-              backgroundImage: "linear-gradient(135deg, #F97316, #EC4899)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
+        {/* Hero content on top */}
+        <div className="relative z-10">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border"
+            style={{ borderColor: "#F97316", color: "#F97316", backgroundColor: "#FFF7ED" }}
           >
-            Actually Fit You
-          </span>
-        </h1>
+            <span>✦</span> AI-Powered Job Matching
+          </div>
 
-        {/* Subtitle */}
-        <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-          JobFit analyzes your resume and scores every job opportunity — so you know exactly where to focus your energy and what to improve.
-        </p>
+          <h1 className="text-6xl font-black text-gray-900 tracking-tight mb-6 leading-tight">
+            Find Jobs That{" "}
+            <span style={{ backgroundImage: "linear-gradient(135deg, #F97316, #EC4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Actually Fit You
+            </span>
+          </h1>
 
-        {/* CTA buttons */}
-        <div className="flex items-center justify-center gap-4">
-          <Link
-            href="/login"
-            className="px-8 py-3.5 rounded-full text-base font-bold text-white transition-colors shadow-lg"
-            style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}
-          >
-            Get started free →
-          </Link>
-          <a
-            href="#features"
-            className="px-8 py-3.5 rounded-full text-base font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors"
-          >
-            See how it works
-          </a>
+          <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+            JobFit analyzes your resume and scores every job opportunity — so you know exactly where to focus your energy and what to improve.
+          </p>
+
+          <div className="flex items-center justify-center gap-4">
+            <Link href="/login" className="px-8 py-3.5 rounded-full text-base font-bold text-white transition-colors shadow-lg" style={{ background: "linear-gradient(135deg, #F97316, #EC4899)" }}>
+              Get started free →
+            </Link>
+            <a href="#features" className="px-8 py-3.5 rounded-full text-base font-semibold text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+              See how it works
+            </a>
+          </div>
         </div>
       </section>
 
@@ -231,13 +241,24 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-8 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
+          {/* Left: Logo */}
           <div className="flex items-center gap-0">
             <img src="/logo_solo.png" alt="JobFit" className="h-8 w-auto" />
             <span className="text-lg font-medium text-gray-600" style={{ fontFamily: "var(--font-poppins)" }}>
               JobFit
             </span>
           </div>
-          <p className="text-xs text-gray-400">Built by Fawaz Mansoor · {new Date().getFullYear()}</p>
+
+          {/* Right: Social links + credit */}
+          <div className="flex items-center gap-4">
+            <Link href="https://github.com/fawazm30" target="_blank" rel="noopener noreferrer">
+              <img src="/github-icon.svg" alt="GitHub" className="h-6 w-6 opacity-60 hover:opacity-100 transition-opacity" />
+            </Link>
+            <Link href="https://www.linkedin.com/in/fawaz-mansoor" target="_blank" rel="noopener noreferrer">
+              <img src="/linkedin-icon.svg" alt="LinkedIn" className="h-6 w-6 opacity-60 hover:opacity-100 transition-opacity" />
+            </Link>
+            <p className="text-xs text-gray-400">Built by Fawaz Mansoor · {new Date().getFullYear()}</p>
+          </div>
         </div>
       </footer>
     </div>
