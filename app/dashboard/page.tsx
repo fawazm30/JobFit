@@ -27,7 +27,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
-  const [loading, setLoading] = useState(true);
   const [resumeSuggestions, setResumeSuggestions] = useState<ResumeSuggestion[]>([]);
   const [latexResume, setLatexResume] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -40,6 +39,7 @@ export default function DashboardPage() {
   const [jobCategories, setJobCategories] = useState<{name: string; avgScore: number; jobCount: number}[]>([]);
   const [showResumeSwitcher, setShowResumeSwitcher] = useState(false);
   const [activatingVersion, setActivatingVersion] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
