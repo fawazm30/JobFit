@@ -6,8 +6,29 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+    },
+    state: {
+      name: "next-auth.state",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account }) {
       console.log("signIn callback:", { user, account });
@@ -18,11 +39,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // If being sent to onboarding explicitly, allow it
       if (url.includes("/onboarding")) return url;
 
-      // Extract email from the URL if possible, otherwise just go to dashboard
-      // Check if user has completed onboarding by looking at their industries
       try {
         const urlObj = new URL(url);
         const email = urlObj.searchParams.get("email");
@@ -38,7 +56,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       } catch {}
 
-      // Default: if URL is on same site go there, else go to dashboard
       if (url.startsWith(baseUrl)) return url;
       return `${baseUrl}/dashboard`;
     },
@@ -47,6 +64,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      checks: ["none"],
     }),
     Credentials({
       name: "credentials",
