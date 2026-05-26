@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { signOut } from "next-auth/react";
 
 type ResumeVersion = {
   id: string;
@@ -93,26 +91,7 @@ export default function ResumePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16">
-        <Link href="/dashboard">
-          <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
-        </Link>
-        <div className="flex items-center gap-6">
-          <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Applications</Link>
-          <Link href="/resume" className="text-sm font-medium text-gray-900">Resumes</Link>
-          <Link href="/jobs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Find Jobs</Link>
-          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Dashboard</Link>
-          <Link href="/profile" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Profile</Link>
-          <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-            >
-              Log out
-            </button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-50 pt-16">
 
       <div className="max-w-2xl mx-auto px-4 py-12">
         {/* Header */}
@@ -193,10 +172,22 @@ export default function ResumePage() {
           <h2 className="text-lg font-bold text-gray-900 mb-4">Your resume versions</h2>
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
             {loadingVersions ? (
-              <div className="p-6">
-                <p className="text-sm text-gray-400">Loading...</p>
-              </div>
-            ) : versions.length === 0 ? (
+            <div className="divide-y divide-gray-100 animate-pulse">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between px-6 py-4">
+                  <div>
+                    <div className="h-4 w-40 bg-gray-200 rounded-full mb-2" />
+                    <div className="h-3 w-24 bg-gray-200 rounded-full" />
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="h-6 w-20 bg-gray-200 rounded-full" />
+                    <div className="h-4 w-8 bg-gray-200 rounded-full" />
+                    <div className="h-4 w-10 bg-gray-200 rounded-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : versions.length === 0 ? (
               <div className="p-6">
                 <p className="text-sm text-gray-400">No resume versions uploaded yet.</p>
               </div>

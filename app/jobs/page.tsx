@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { signOut } from "next-auth/react";
 
 type Job = {
   id: string;
@@ -342,8 +341,16 @@ export default function JobsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <div className="min-h-screen bg-gray-50 animate-pulse pt-16">
+        <div className="max-w-4xl mx-auto px-4 py-10">
+          <div className="h-10 w-64 bg-gray-200 rounded-full mb-8" />
+          <div className="bg-white rounded-2xl h-96 mb-6 border border-gray-100" />
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-2xl h-48 border border-gray-100" />
+            <div className="bg-white rounded-2xl h-48 border border-gray-100" />
+          </div>
+          <div className="bg-white rounded-2xl h-40 border border-gray-100" />
+        </div>
       </div>
     );
   }
@@ -352,25 +359,6 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between h-16 fixed top-0 left-0 right-0 z-40">
-        <Link href="/dashboard">
-          <img src="/jobfit_logo.png" alt="JobFit" className="h-16 w-auto" />
-        </Link>
-        <div className="flex items-center gap-6">
-          <Link href="/applications" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Applications</Link>
-          <Link href="/resume" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Resumes</Link>
-          <Link href="/jobs" className="text-sm font-medium text-gray-900">Find Jobs</Link>
-          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Dashboard</Link>
-          <Link href="/profile" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Profile</Link>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            Log out
-          </button>
-        </div>
-      </nav>
 
       <div className={`pt-16 transition-all duration-300 ${coverLetterJobId ? "mr-96" : ""}`}>
         <div className="max-w-4xl mx-auto px-4 py-10">
