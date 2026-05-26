@@ -5,7 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
-export async function POST() {
+export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,9 +17,14 @@ export async function POST() {
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const jobTitles = user.jobTitles || [];
-  let query = jobTitles[0]?.trim() || "";
+  // Get search query from request body first — this takes priority over everything
+  const body = await req.json().catch(() => ({}));
+  const searchQuery = body.searchQuery?.trim() || null;
 
+  const jobTitles = user.jobTitles || [];
+  let query = searchQuery || jobTitles[0]?.trim() || "";
+
+  // Only call Claude for query if nothing else is available
   if (!query) {
     try {
       const msg = await anthropic.messages.create({
@@ -48,16 +53,26 @@ Example outputs: "Software Developer", "Registered Nurse", "Civil Engineer"`,
     }
   }
 
+  // Build location string for Adzuna
   const locations = user.locations || [];
-  const specificLocation = locations.find((l) => l !== "Remote" && l !== "Canada-wide");
-  const location = specificLocation || "Canada";
+  const hasRemote = locations.includes("Remote") || locations.includes("Canada-wide");
+  const specificLocations = locations.filter((l) => l !== "Remote" && l !== "Canada-wide");
+
+  // Use the first specific location for Adzuna, fall back to Canada-wide
+  const adzunaLocation = specificLocations.length > 0 ? specificLocations[0] : "Canada";
+
   const appId = process.env.ADZUNA_APP_ID;
   const apiKey = process.env.ADZUNA_API_KEY;
-  const simplifiedQuery = query.replace(/intern(ship)?/i, "").trim();
 
-  const url = `https://api.adzuna.com/v1/api/jobs/ca/search/1?app_id=${appId}&app_key=${apiKey}&results_per_page=20&what=${encodeURIComponent(simplifiedQuery)}&where=Canada`;
+  // Don't strip anything from search query — use it exactly as typed
+  const finalQuery = searchQuery ? searchQuery : query.replace(/intern(ship)?/i, "").trim();
+
+  const url = `https://api.adzuna.com/v1/api/jobs/ca/search/1?app_id=${appId}&app_key=${apiKey}&results_per_page=20&what=${encodeURIComponent(finalQuery)}&where=${encodeURIComponent(adzunaLocation)}`;
 
   console.log("Adzuna URL:", url);
+  console.log("Search query:", finalQuery);
+  console.log("Location:", adzunaLocation);
+
   const res = await fetch(url);
   const text = await res.text();
   console.log("Adzuna response status:", res.status);
@@ -69,8 +84,20 @@ Example outputs: "Software Developer", "Registered Nurse", "Civil Engineer"`,
     return NextResponse.json({ error: "Adzuna API error", details: text.slice(0, 200) }, { status: 500 });
   }
 
-  if (!data.results) {
-    return NextResponse.json({ error: "No results from Adzuna", details: data }, { status: 500 });
+  if (!data.results || data.results.length === 0) {
+    // If no results with specific location, fall back to all of Canada
+    console.log("No results for location, falling back to Canada-wide search");
+    const fallbackUrl = `https://api.adzuna.com/v1/api/jobs/ca/search/1?app_id=${appId}&app_key=${apiKey}&results_per_page=35&what=${encodeURIComponent(finalQuery)}&where=Canada`;
+    const fallbackRes = await fetch(fallbackUrl);
+    const fallbackText = await fallbackRes.text();
+    try {
+      data = JSON.parse(fallbackText);
+    } catch {
+      return NextResponse.json({ error: "Adzuna API error" }, { status: 500 });
+    }
+    if (!data.results) {
+      return NextResponse.json({ error: "No results from Adzuna", details: data }, { status: 500 });
+    }
   }
 
   // Build job list for batch scoring
@@ -85,7 +112,7 @@ Example outputs: "Software Developer", "Registered Nurse", "Civil Engineer"`,
     externalId: result.id,
     title: result.title,
     company: result.company?.display_name || "Unknown",
-    location: result.location?.display_name || location,
+    location: result.location?.display_name || adzunaLocation,
     description: result.description || "",
     applicationLink: result.redirect_url,
   }));
@@ -103,7 +130,13 @@ Example outputs: "Software Developer", "Registered Nurse", "Civil Engineer"`,
 
   if (user.resumeText) {
     try {
-      const jobList = jobs.map((j: { externalId: string; title: string; company: string; location: string; description: string }, i: number) =>
+      const jobList = jobs.map((j: {
+        externalId: string;
+        title: string;
+        company: string;
+        location: string;
+        description: string;
+      }, i: number) =>
         `Job ${i + 1} (ID: ${j.externalId}):
 Title: ${j.title}
 Company: ${j.company}
@@ -113,11 +146,11 @@ Description: ${j.description.slice(0, 300)}`
 
       const msg = await anthropic.messages.create({
         model: "claude-sonnet-4-5",
-        max_tokens: 4096,
+        max_tokens: 6000,
         messages: [
           {
             role: "user",
-            content: `You are a job matching assistant. Analyze each job against the candidate's resume and return scores.
+            content: `You are a strict job matching assistant. Analyze each job against the candidate's resume and return honest scores.
 
 Candidate info:
 - Skills: ${user.skills?.join(", ")}
@@ -142,7 +175,13 @@ Return ONLY a JSON array, no markdown, no explanation:
   }
 ]
 
-Analyze ALL ${jobs.length} jobs. Be accurate with matchedSkills and missingSkills based on the candidate's actual skills.`,
+STRICT RULES you MUST follow for every job:
+- matchedSkills: ONLY skills explicitly listed in BOTH the candidate's skills AND the job description. Never infer or assume.
+- missingSkills: Skills or tools the job description explicitly requires that are NOT in the candidate's skills list. You MUST always return at least 2-3 missing skills per job — no job is a perfect match. Look carefully at the job description for required tools, certifications, experience levels, or domain knowledge the candidate lacks.
+- score: Be honest. A score above 85 should be rare and only when the candidate clearly meets almost all requirements.
+- requirements: Extract 3-5 key requirements directly from the job description.
+
+Analyze ALL ${jobs.length} jobs.`,
           },
         ],
       });
@@ -161,7 +200,14 @@ Analyze ALL ${jobs.length} jobs. Be accurate with matchedSkills and missingSkill
   }
 
   // Merge scores with job data
-  const suggestions = jobs.map((job: { externalId: string; title: string; company: string; location: string; description: string; applicationLink: string }) => {
+  const suggestions = jobs.map((job: {
+    externalId: string;
+    title: string;
+    company: string;
+    location: string;
+    description: string;
+    applicationLink: string;
+  }) => {
     const scored = scoredJobs.find((s) => s.externalId === job.externalId);
     return {
       externalId: job.externalId,

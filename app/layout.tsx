@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} min-h-full flex flex-col`}>
         <SessionProvider>
           <Navbar />
-          <div>
+          <div className="bg-gray-50 min-h-screen">
             {children}
           </div>
         </SessionProvider>
