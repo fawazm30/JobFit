@@ -13,12 +13,41 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const passwordRequirements = [
+    { label: "At least 8 characters", valid: password.length >= 8 },
+    { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
+    { label: "One number", valid: /[0-9]/.test(password) },
+    { label: "One special character (!@#$%^&*)", valid: /[!@#$%^&*]/.test(password) },
+  ];
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     if (tab === "signup") {
+      // Password validation
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters.");
+        setLoading(false);
+        return;
+      }
+      if (!/[A-Z]/.test(password)) {
+        setError("Password must contain at least one uppercase letter.");
+        setLoading(false);
+        return;
+      }
+      if (!/[0-9]/.test(password)) {
+        setError("Password must contain at least one number.");
+        setLoading(false);
+        return;
+      }
+      if (!/[!@#$%^&*]/.test(password)) {
+        setError("Password must contain at least one special character (!@#$%^&*).");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,8 +78,8 @@ export default function LoginPage() {
         <div className="flex items-center gap-0">
           <img src="/logo_solo.png" alt="JobFit" className="h-14 w-auto" />
           <span className="text-lg font-medium text-gray-600" style={{ fontFamily: "var(--font-poppins)" }}>
-              JobFit
-            </span>
+            JobFit
+          </span>
         </div>
       </nav>
 
@@ -87,7 +116,7 @@ export default function LoginPage() {
             <hr className="flex-1 border-gray-300" />
           </div>
 
-          {/* Email input */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
             {tab === "signup" && (
               <input
@@ -115,6 +144,19 @@ export default function LoginPage() {
               className="w-full px-4 py-3 bg-gray-100 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400 transition-colors placeholder-gray-400"
             />
 
+            {/* Password requirements — only show on signup */}
+            {tab === "signup" && password && (
+              <div className="space-y-1 px-1">
+                {passwordRequirements.map((req) => (
+                  <div key={req.label} className="flex items-center gap-2">
+                    <span className={`text-xs font-medium transition-colors ${req.valid ? "text-green-500" : "text-gray-400"}`}>
+                      {req.valid ? "✓" : "○"} {req.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {error && <p className="text-sm text-red-500">{error}</p>}
 
             {/* Submit button */}
@@ -138,7 +180,7 @@ export default function LoginPage() {
               <>
                 Don't have an account?{" "}
                 <button
-                  onClick={() => { setTab("signup"); setError(""); }}
+                  onClick={() => { setTab("signup"); setError(""); setPassword(""); }}
                   className="text-orange-500 font-medium hover:underline"
                 >
                   Sign up
@@ -148,7 +190,7 @@ export default function LoginPage() {
               <>
                 Already have an account?{" "}
                 <button
-                  onClick={() => { setTab("login"); setError(""); }}
+                  onClick={() => { setTab("login"); setError(""); setPassword(""); }}
                   className="text-orange-500 font-medium hover:underline"
                 >
                   Log in
