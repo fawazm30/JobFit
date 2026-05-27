@@ -22,7 +22,7 @@ export default function ResumePreview({ url }: { url: string }) {
   return (
     <div className="flex justify-center w-full">
       <Document file={url}>
-        <Page pageNumber={1} width={600} />
+        <Page pageNumber={1} width={780} />
       </Document>
     </div>
   );
