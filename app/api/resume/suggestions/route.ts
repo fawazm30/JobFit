@@ -1,3 +1,10 @@
+/**
+ * @file app/api/resume/suggestions/route.ts
+ * @description Uses Claude to analyze the user's resume against missing skills
+ * from their saved jobs, produces actionable improvement suggestions, generates
+ * an improved LaTeX resume, and compiles it to PDF via latex.ytotech.com.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +12,11 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
+/**
+ * POST /api/resume/suggestions - Generate AI resume suggestions and an improved LaTeX/PDF resume.
+ * @param {Request} req - JSON body with optional { pageCount: "1" | "2" }
+ * @returns {NextResponse} JSON { suggestions, latexResume, pdfUrl } or 400/401/500
+ */
 export async function POST(req: Request) {
   try {
     const session = await auth();

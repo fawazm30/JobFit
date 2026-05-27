@@ -1,3 +1,10 @@
+/**
+ * @file app/api/jobs/categories/route.ts
+ * @description Uses Claude to categorize the user's saved jobs into their
+ * preferred industries and computes an average match score per category.
+ * Powers the "Best-fit Categories" widget on the dashboard.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +12,10 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
+/**
+ * GET /api/jobs/categories - Categorize saved jobs by industry and compute average scores.
+ * @returns {NextResponse} JSON { categories } sorted by avgScore descending, or 401/404
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) {

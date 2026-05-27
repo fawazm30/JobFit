@@ -1,7 +1,18 @@
+/**
+ * @file app/api/jobs/[id]/status/route.ts
+ * @description Updates a job posting's general status (e.g. "saved", "ignored").
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * PATCH /api/jobs/:id/status - Update a job's save/ignore status.
+ * @param {Request} req - JSON body with { status: string }
+ * @param {{ params: Promise<{ id: string }> }} context - Route params with job ID
+ * @returns {NextResponse} JSON { job } with the updated record
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

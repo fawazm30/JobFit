@@ -1,7 +1,19 @@
+/**
+ * @file app/api/jobs/save/route.ts
+ * @description Saves a job discovered via the Adzuna search to the user's list,
+ * preserving AI scores already computed during discovery. Prevents duplicates
+ * by checking the externalId.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * POST /api/jobs/save - Persist a discovered job suggestion to the user's saved jobs.
+ * @param {Request} req - JSON body with job data including externalId and pre-computed scores
+ * @returns {NextResponse} JSON { job } or 409 if the job was already saved
+ */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {

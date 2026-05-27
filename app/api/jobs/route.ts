@@ -1,7 +1,17 @@
+/**
+ * @file app/api/jobs/route.ts
+ * @description Fetch all saved jobs or manually add a new job posting for the
+ * current user. Newly added jobs are scored against the user's resume via Claude.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/jobs - Retrieve all saved job postings for the current user.
+ * @returns {NextResponse} JSON { jobs } ordered by match score descending or 401/404
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) {
@@ -22,6 +32,11 @@ export async function GET() {
   return NextResponse.json({ jobs });
 }
 
+/**
+ * POST /api/jobs - Manually create a new job posting and score it with Claude.
+ * @param {Request} req - JSON body with { title, company, description, location?, applicationLink? }
+ * @returns {NextResponse} JSON { job } with AI match scores, or 400 if required fields are missing
+ */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {

@@ -1,8 +1,19 @@
+/**
+ * @file app/api/profile/password/route.ts
+ * @description Allows credentials-based users to change their password after
+ * verifying their current password.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+/**
+ * PATCH /api/profile/password - Change the current user's password.
+ * @param {Request} req - JSON body with { currentPassword, newPassword }
+ * @returns {NextResponse} { success: true } or 400 if current password is wrong
+ */
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {

@@ -1,7 +1,18 @@
+/**
+ * @file app/api/resume/activate/route.ts
+ * @description Sets a specific resume version as the user's active resume by
+ * copying its text, URL, and skills to the user record.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * PATCH /api/resume/activate - Activate a resume version as the user's current resume.
+ * @param {Request} req - JSON body with { resumeVersionId: string }
+ * @returns {NextResponse} JSON { success: true } or 401/404
+ */
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {

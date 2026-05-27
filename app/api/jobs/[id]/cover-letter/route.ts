@@ -1,7 +1,19 @@
+/**
+ * @file app/api/jobs/[id]/cover-letter/route.ts
+ * @description Retrieves and persists the editable cover letter HTML for a
+ * specific job posting.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/jobs/:id/cover-letter - Fetch the saved cover letter HTML for a job.
+ * @param {Request} req - Incoming request
+ * @param {{ params: Promise<{ id: string }> }} context - Route params with job ID
+ * @returns {NextResponse} JSON { coverLetter } or 404 if job not found
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -23,6 +35,12 @@ export async function GET(
   return NextResponse.json({ coverLetter: job.coverLetter });
 }
 
+/**
+ * PATCH /api/jobs/:id/cover-letter - Save edited cover letter HTML for a job.
+ * @param {Request} req - JSON body with { coverLetter: string }
+ * @param {{ params: Promise<{ id: string }> }} context - Route params with job ID
+ * @returns {NextResponse} JSON { job } with the updated record
+ */
 export async function PATCH(
     req: Request,
     { params }: { params: Promise<{ id: string }> }

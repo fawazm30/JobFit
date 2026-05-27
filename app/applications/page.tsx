@@ -1,3 +1,10 @@
+/**
+ * @file app/applications/page.tsx
+ * @description Application tracker page. Lists all jobs with a non-null
+ * applicationStatus, allows filtering by pipeline stage, updating statuses,
+ * assigning resume versions to applications, and removing entries.
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -42,6 +49,12 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   ghosted: { bg: "#f3f4f6", color: "#6b7280" },
 };
 
+/**
+ * Circular SVG progress indicator that displays an AI match score percentage.
+ * Shows "N/A" when score is null.
+ * @param {{ score: number | null }} props - The match score (0–100) or null
+ * @returns {JSX.Element} An SVG donut chart with the score centered inside
+ */
 function CircleScore({ score }: { score: number | null }) {
   if (score === null) return (
     <div className="flex flex-col items-center gap-1">
@@ -84,6 +97,10 @@ function CircleScore({ score }: { score: number | null }) {
   );
 }
 
+/**
+ * Application tracker page with filter pills and per-job status/resume controls.
+ * @returns {JSX.Element} The applications page, or a skeleton while loading
+ */
 export default function ApplicationsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -103,6 +120,10 @@ export default function ApplicationsPage() {
     }
   }, [session]);
 
+  /**
+   * Loads all applications from /api/applications.
+   * @returns {Promise<void>}
+   */
   async function fetchApplications() {
     setLoading(true);
     const res = await fetch("/api/applications");
@@ -111,6 +132,12 @@ export default function ApplicationsPage() {
     setLoading(false);
   }
 
+  /**
+   * Updates the application pipeline stage for a job.
+   * @param {string} jobId - The job posting ID
+   * @param {string} applicationStatus - The new status value
+   * @returns {Promise<void>}
+   */
   async function updateStatus(jobId: string, applicationStatus: string) {
     const res = await fetch(`/api/jobs/${jobId}/application-status`, {
       method: "PATCH",
@@ -120,6 +147,11 @@ export default function ApplicationsPage() {
     if (res.ok) fetchApplications();
   }
 
+  /**
+   * Clears the applicationStatus for a job, removing it from the tracker.
+   * @param {string} jobId - The job posting ID to remove from the tracker
+   * @returns {Promise<void>}
+   */
   async function removeApplication(jobId: string) {
     const res = await fetch(`/api/jobs/${jobId}/application-status`, {
       method: "PATCH",
@@ -129,12 +161,22 @@ export default function ApplicationsPage() {
     if (res.ok) fetchApplications();
   }
 
+  /**
+   * Loads all resume versions for the resume assignment dropdown.
+   * @returns {Promise<void>}
+   */
   async function fetchVersions() {
     const res = await fetch("/api/resume/versions");
     const data = await res.json();
     setResumeVersions(data.versions || []);
   }
 
+  /**
+   * Associates a resume version with a job application for performance tracking.
+   * @param {string} jobId - The job posting ID
+   * @param {string} resumeVersionId - The resume version ID to assign
+   * @returns {Promise<void>}
+   */
   async function updateResumeVersion(jobId: string, resumeVersionId: string) {
     const res = await fetch(`/api/jobs/${jobId}/resume-version`, {
       method: "PATCH",

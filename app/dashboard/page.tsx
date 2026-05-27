@@ -1,3 +1,11 @@
+/**
+ * @file app/dashboard/page.tsx
+ * @description Main authenticated dashboard. Displays the user's active resume
+ * preview with a version switcher, their skills list, top-performing resume
+ * versions by interview count, best-fit job categories, and an AI-powered
+ * resume suggestions section that generates an improved LaTeX/PDF resume.
+ */
+
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -24,6 +32,10 @@ type ResumeVersion = {
   skills: string[];
 };
 
+/**
+ * Main dashboard page for authenticated users.
+ * @returns {JSX.Element} The dashboard UI, or a skeleton while loading
+ */
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -68,6 +80,10 @@ export default function DashboardPage() {
     }
   }, [session]);
 
+  /**
+   * Adds a new skill to the user's skills list via POST /api/skills.
+   * @returns {Promise<void>}
+   */
   async function addSkill() {
     if (!newSkill.trim()) return;
     const res = await fetch("/api/skills", {
@@ -80,6 +96,11 @@ export default function DashboardPage() {
     setNewSkill("");
   }
 
+  /**
+   * Removes a skill from the user's skills list via DELETE /api/skills.
+   * @param {string} skill - The skill label to remove
+   * @returns {Promise<void>}
+   */
   async function removeSkill(skill: string) {
     const res = await fetch("/api/skills", {
       method: "DELETE",
@@ -90,6 +111,11 @@ export default function DashboardPage() {
     setSkills(data.skills);
   }
 
+  /**
+   * Calls /api/resume/suggestions to generate AI resume feedback and an improved PDF.
+   * Animates a progress bar while waiting for the response.
+   * @returns {Promise<void>}
+   */
   async function generateSuggestions() {
     setGeneratingSuggestions(true);
     setSuggestionsError("");
@@ -128,6 +154,10 @@ export default function DashboardPage() {
     }, 500);
   }
 
+  /**
+   * Counts interview-stage applications per resume version for the Top Resumes widget.
+   * @returns {Promise<void>}
+   */
   async function fetchVersionStats() {
     const res = await fetch("/api/applications");
     const data = await res.json();
@@ -143,6 +173,10 @@ export default function DashboardPage() {
     setVersionStats(stats);
   }
 
+  /**
+   * Loads all resume versions for the inline version switcher panel.
+   * @returns {Promise<void>}
+   */
   async function fetchVersions() {
     const res = await fetch("/api/resume/versions");
     const data = await res.json();
@@ -153,12 +187,21 @@ export default function DashboardPage() {
     }
   }
 
+  /**
+   * Fetches AI-categorized job match data for the Best-fit Categories widget.
+   * @returns {Promise<void>}
+   */
   async function fetchJobCategories() {
     const res = await fetch("/api/jobs/categories");
     const data = await res.json();
     setJobCategories(data.categories || []);
   }
 
+  /**
+   * Activates a resume version as the user's current resume and updates local state.
+   * @param {ResumeVersion} version - The resume version to activate
+   * @returns {Promise<void>}
+   */
   async function activateVersion(version: ResumeVersion) {
     setActivatingVersion(version.id);
     const res = await fetch("/api/resume/activate", {

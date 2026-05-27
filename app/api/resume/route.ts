@@ -1,3 +1,10 @@
+/**
+ * @file app/api/resume/route.ts
+ * @description Handles uploading a user's primary resume PDF: extracts text
+ * with unpdf, extracts skills via Claude, uploads the file to Supabase Storage,
+ * and updates the user record.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +14,11 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
+/**
+ * POST /api/resume - Upload a PDF resume, extract text and skills, and store everything.
+ * @param {Request} req - Multipart form data with a "resume" PDF file field
+ * @returns {NextResponse} JSON { success, skills } or 400/401/500 on failure
+ */
 export async function POST(req: Request) {
   try {
     const session = await auth();

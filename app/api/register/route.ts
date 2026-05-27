@@ -1,7 +1,17 @@
+/**
+ * @file app/api/register/route.ts
+ * @description Creates a new credentials-based user account with a hashed password.
+ */
+
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * POST /api/register - Register a new user with email and password.
+ * @param {Request} req - JSON body with name, email, password
+ * @returns {NextResponse} Created user's id and email, 400 if email already in use
+ */
 export async function POST(req: Request) {
   const { name, email, password } = await req.json();
 

@@ -1,3 +1,10 @@
+/**
+ * @file app/resume/page.tsx
+ * @description Resume version management page. Users can upload new PDF resume
+ * versions, view all versions with detected skill counts, set a version as
+ * current, view the PDF, and delete versions.
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,6 +17,10 @@ type ResumeVersion = {
   skills: string[];
 };
 
+/**
+ * Resume version management page with upload form and version list.
+ * @returns {JSX.Element} The resume page UI
+ */
 export default function ResumePage() {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
@@ -26,12 +37,20 @@ export default function ResumePage() {
     fetchCurrentResume();
   }, []);
 
+  /**
+   * Fetches the current user's active resume URL from /api/me.
+   * @returns {Promise<void>}
+   */
   async function fetchCurrentResume() {
     const res = await fetch("/api/me");
     const data = await res.json();
     setCurrentResumeUrl(data.resumeUrl || null);
   }
 
+  /**
+   * Fetches all uploaded resume versions from /api/resume/versions.
+   * @returns {Promise<void>}
+   */
   async function fetchVersions() {
     const res = await fetch("/api/resume/versions");
     const data = await res.json();
@@ -39,6 +58,10 @@ export default function ResumePage() {
     setLoadingVersions(false);
   }
 
+  /**
+   * Validates the selected file and name, then POSTs to /api/resume/versions.
+   * @returns {Promise<void>}
+   */
   async function handleUpload() {
     if (!file) return setError("Please select a file.");
     if (!name.trim()) return setError("Please give your resume a name.");
@@ -68,6 +91,11 @@ export default function ResumePage() {
     setLoading(false);
   }
 
+  /**
+   * Deletes a resume version by ID via DELETE /api/resume/versions/:id.
+   * @param {string} id - The resume version ID to delete
+   * @returns {Promise<void>}
+   */
   async function deleteVersion(id: string) {
     const res = await fetch(`/api/resume/versions/${id}`, { method: "DELETE" });
     if (res.ok) {
@@ -76,6 +104,11 @@ export default function ResumePage() {
     }
   }
 
+  /**
+   * Sets a resume version as the user's current active resume.
+   * @param {ResumeVersion} version - The version to activate
+   * @returns {Promise<void>}
+   */
   async function activateVersion(version: ResumeVersion) {
     setActivating(version.id);
     const res = await fetch("/api/resume/activate", {

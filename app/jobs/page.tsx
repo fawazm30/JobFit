@@ -1,3 +1,10 @@
+/**
+ * @file app/jobs/page.tsx
+ * @description Job search and management page. Users can discover jobs via the
+ * Adzuna API, view AI-scored suggestions, save jobs, manage requirements, open
+ * a cover letter panel, update preferences, and track ignored jobs.
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -75,6 +82,11 @@ type Suggestion = {
   interestMatch: string | null;
 };
 
+/**
+ * Circular SVG progress indicator showing an AI match score.
+ * @param {{ score: number | null }} props - Match score (0–100) or null for N/A
+ * @returns {JSX.Element} An SVG donut chart with the score value
+ */
 function CircleScore({ score }: { score: number | null }) {
   if (score === null) return (
     <div className="w-16 h-16 rounded-full border-4 border-gray-200 flex items-center justify-center">
@@ -106,12 +118,22 @@ function CircleScore({ score }: { score: number | null }) {
   );
 }
 
+/**
+ * Slide-in panel for generating, editing, saving, and downloading a cover letter.
+ * Uses Tiptap for rich-text editing and docx for Word export.
+ * @param {{ jobId: string, initialContent: string | null, onClose: () => void }} props
+ * @returns {JSX.Element} A fixed right-side panel
+ */
 function CoverLetterPanel({ jobId, initialContent, onClose }: { jobId: string; initialContent: string | null; onClose: () => void }) {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const editor = useEditor({ extensions: [StarterKit], content: initialContent || "" });
 
+  /**
+   * Calls the AI cover letter generation endpoint and inserts the result into the editor.
+   * @returns {Promise<void>}
+   */
   async function generate() {
     setGenerating(true);
     const res = await fetch(`/api/jobs/${jobId}/generate-cover-letter`, { method: "POST" });
@@ -120,6 +142,10 @@ function CoverLetterPanel({ jobId, initialContent, onClose }: { jobId: string; i
     setGenerating(false);
   }
 
+  /**
+   * Saves the current editor content as HTML via PATCH /api/jobs/:id/cover-letter.
+   * @returns {Promise<void>}
+   */
   async function save() {
     setSaving(true);
     const content = editor?.getHTML() || "";
@@ -129,6 +155,10 @@ function CoverLetterPanel({ jobId, initialContent, onClose }: { jobId: string; i
     setTimeout(() => setSaved(false), 2000);
   }
 
+  /**
+   * Exports the current cover letter text as a .docx file using the docx library.
+   * @returns {Promise<void>}
+   */
   async function downloadDocx() {
     const { Document, Paragraph, TextRun, Packer } = await import("docx");
     const { saveAs } = await import("file-saver");
@@ -165,6 +195,12 @@ function CoverLetterPanel({ jobId, initialContent, onClose }: { jobId: string; i
   );
 }
 
+/**
+ * Slide-in panel for editing the user's job search preferences inline.
+ * Loads current preferences on mount and saves changes via POST /api/onboarding.
+ * @param {{ onClose: () => void }} props
+ * @returns {JSX.Element} A fixed right-side preferences panel
+ */
 function PreferencesPanel({ onClose }: { onClose: () => void }) {
   const [industries, setIndustries] = useState<string[]>([]);
   const [jobTypes, setJobTypes] = useState<string[]>([]);
@@ -195,6 +231,10 @@ function PreferencesPanel({ onClose }: { onClose: () => void }) {
     setLocations((prev) => prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]);
   }
 
+  /**
+   * Persists updated job preferences to the server via POST /api/onboarding.
+   * @returns {Promise<void>}
+   */
   async function savePreferences() {
     setSaving(true);
     await fetch("/api/onboarding", {
@@ -358,6 +398,10 @@ function PreferencesPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
+/**
+ * Animated placeholder card shown while job suggestions are loading.
+ * @returns {JSX.Element} A pulse-animated skeleton matching the job card layout
+ */
 function SkeletonCard() {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
@@ -386,6 +430,11 @@ function SkeletonCard() {
   );
 }
 
+/**
+ * Job search page with "Suggested" and "Saved" tabs, inline cover letter and
+ * preferences panels, and an apply-confirmation dialog.
+ * @returns {JSX.Element} The full jobs page UI, or a skeleton while loading
+ */
 export default function JobsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -415,6 +464,10 @@ export default function JobsPage() {
     if (session) fetchJobs();
   }, [session]);
 
+  /**
+   * Loads all saved jobs from /api/jobs, sorted by match score descending.
+   * @returns {Promise<void>}
+   */
   async function fetchJobs() {
     const res = await fetch("/api/jobs");
     const data = await res.json();
@@ -427,6 +480,11 @@ export default function JobsPage() {
     setLoading(false);
   }
 
+  /**
+   * Calls /api/jobs/discover with an optional search query to fetch and score
+   * new job suggestions, filtering out already-saved jobs.
+   * @returns {Promise<void>}
+   */
   async function discoverJobs() {
     setDiscovering(true);
     setDiscoverMsg("");
@@ -454,6 +512,11 @@ export default function JobsPage() {
     setDiscovering(false);
   }
 
+  /**
+   * Saves a suggested job to the user's list via POST /api/jobs/save.
+   * @param {Suggestion} suggestion - The job suggestion to save
+   * @returns {Promise<void>}
+   */
   async function saveJob(suggestion: Suggestion) {
     const res = await fetch("/api/jobs/save", {
       method: "POST",
@@ -466,6 +529,11 @@ export default function JobsPage() {
     }
   }
 
+  /**
+   * Re-scores a saved job against the user's current resume via POST /api/jobs/:id/recalculate.
+   * @param {string} jobId - The job posting ID to recalculate
+   * @returns {Promise<void>}
+   */
   async function recalculateScore(jobId: string) {
     setRecalculating(jobId);
     const res = await fetch(`/api/jobs/${jobId}/recalculate`, { method: "POST" });
@@ -473,30 +541,59 @@ export default function JobsPage() {
     setRecalculating(null);
   }
 
+  /**
+   * Sets a saved job's status to "ignored" so it is hidden from the main list.
+   * @param {string} jobId - The job posting ID to ignore
+   * @returns {Promise<void>}
+   */
   async function ignoreJob(jobId: string) {
     const res = await fetch(`/api/jobs/${jobId}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "ignored" }) });
     if (res.ok) fetchJobs();
   }
 
+  /**
+   * Restores an ignored job back to "saved" status.
+   * @param {string} jobId - The job posting ID to unignore
+   * @returns {Promise<void>}
+   */
   async function unignoreJob(jobId: string) {
     const res = await fetch(`/api/jobs/${jobId}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "saved" }) });
     if (res.ok) fetchJobs();
   }
 
+  /**
+   * Opens the "Did you apply?" confirmation dialog 500 ms after clicking a job link,
+   * giving time for the browser to navigate to the posting.
+   * @param {Job} job - The saved job being applied to
+   * @param {React.MouseEvent} e - The click event (stopped from propagating)
+   */
   function handleApplyClick(job: Job, e: React.MouseEvent) {
     e.stopPropagation();
     setTimeout(() => setApplyingJobId(job.id), 500);
   }
 
+  /**
+   * Toggles the expanded detail view for a saved job card.
+   * @param {string} id - The job posting ID to expand or collapse
+   */
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
   }
 
+  /**
+   * Removes a requirement from a job's editable requirements list in local state.
+   * @param {string} jobId - The job posting ID
+   * @param {string} req - The requirement string to remove
+   */
   function removeReq(jobId: string, req: string) {
     const current = editingReqs[jobId] ?? jobs.find((j) => j.id === jobId)?.requirements ?? [];
     setEditingReqs((prev) => ({ ...prev, [jobId]: current.filter((r) => r !== req) }));
   }
 
+  /**
+   * Appends the current input text as a new requirement for a job in local state.
+   * @param {string} jobId - The job posting ID to add the requirement to
+   */
   function addReq(jobId: string) {
     const req = newReqInput[jobId]?.trim();
     if (!req) return;
@@ -505,6 +602,11 @@ export default function JobsPage() {
     setNewReqInput((prev) => ({ ...prev, [jobId]: "" }));
   }
 
+  /**
+   * Marks a suggested job as ignored in local state and saves it with status "ignored".
+   * @param {string} externalId - The Adzuna external job ID to ignore
+   * @returns {Promise<void>}
+   */
   async function ignoreSuggestion(externalId: string) {
     setIgnoredIds((prev) => new Set([...prev, externalId]));
     const suggestion = suggestions.find((s) => s.externalId === externalId);

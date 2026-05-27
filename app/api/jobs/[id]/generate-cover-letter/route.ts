@@ -1,3 +1,9 @@
+/**
+ * @file app/api/jobs/[id]/generate-cover-letter/route.ts
+ * @description Uses Claude to generate a personalised HTML cover letter for a
+ * specific job based on the user's resume, skills, and the job description.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +11,12 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
+/**
+ * POST /api/jobs/:id/generate-cover-letter - AI-generate a cover letter for a job.
+ * @param {Request} req - Incoming request (no body required)
+ * @param {{ params: Promise<{ id: string }> }} context - Route params with job ID
+ * @returns {NextResponse} JSON { coverLetter } as raw HTML, or 400/404/500
+ */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

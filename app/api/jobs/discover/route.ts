@@ -1,3 +1,10 @@
+/**
+ * @file app/api/jobs/discover/route.ts
+ * @description Searches Adzuna for relevant job postings and batch-scores them
+ * against the user's resume using Claude. Falls back to Canada-wide search if
+ * no results are found for the user's preferred location.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +12,11 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
+/**
+ * POST /api/jobs/discover - Search Adzuna and AI-score job suggestions for the current user.
+ * @param {Request} req - JSON body with optional { searchQuery: string }
+ * @returns {NextResponse} JSON { suggestions } array sorted by matchScore descending
+ */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {

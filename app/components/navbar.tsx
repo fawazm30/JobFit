@@ -1,3 +1,9 @@
+/**
+ * @file navbar.tsx
+ * @description Fixed top navigation bar rendered on all authenticated app
+ * pages. Hidden on the landing page, login, and onboarding routes.
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -18,6 +24,11 @@ const navLinks = [
   { href: "/profile", label: "Profile" },
 ];
 
+/**
+ * App-wide navigation bar with links to all main sections and a sign-out button.
+ * Returns null on the landing page, login, and onboarding routes.
+ * @returns {JSX.Element | null} The nav element or null when the route is excluded
+ */
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();

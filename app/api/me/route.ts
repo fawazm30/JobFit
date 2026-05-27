@@ -1,7 +1,17 @@
+/**
+ * @file app/api/me/route.ts
+ * @description Returns the authenticated user's full profile including
+ * skills, resume info, and job preferences.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/me - Fetch the current user's profile data.
+ * @returns {NextResponse} JSON user object or 401 if unauthenticated
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) {

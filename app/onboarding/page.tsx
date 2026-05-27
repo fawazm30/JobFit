@@ -1,3 +1,10 @@
+/**
+ * @file app/onboarding/page.tsx
+ * @description Multi-step onboarding wizard for new users. Collects industry
+ * preferences, preferred locations, job types, and an optional resume upload
+ * across four sequential steps.
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -39,6 +46,10 @@ const JOB_TYPES = [
 
 const STEPS = ["Industry", "Location", "Job Type", "Resume"];
 
+/**
+ * Four-step onboarding wizard: Industry → Location → Job Type → Resume upload.
+ * @returns {JSX.Element} The onboarding flow with progress bar and step content
+ */
 export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
@@ -52,24 +63,40 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  /**
+   * Toggles a single industry in the selectedIndustries list.
+   * @param {string} val - The industry label to add or remove
+   */
   function toggleIndustry(val: string) {
     setSelectedIndustries((prev) =>
       prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
     );
   }
 
+  /**
+   * Toggles a single location in the selectedLocations list.
+   * @param {string} val - The city or special location label to add or remove
+   */
   function toggleLocation(val: string) {
     setSelectedLocations((prev) =>
       prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
     );
   }
 
+  /**
+   * Toggles a single job type in the jobTypes list.
+   * @param {string} val - The job type value to add or remove
+   */
   function toggleJobType(val: string) {
     setJobTypes((prev) =>
       prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
     );
   }
 
+  /**
+   * Advances to the next step after validating the current step's selection.
+   * Sets an error message if the required selection is empty.
+   */
   function nextStep() {
     setError("");
     if (step === 0 && selectedIndustries.length === 0) {
@@ -84,6 +111,11 @@ export default function OnboardingPage() {
     setStep((s) => s + 1);
   }
 
+  /**
+   * Submits onboarding preferences and optionally uploads a resume, then
+   * redirects to the dashboard.
+   * @returns {Promise<void>}
+   */
   async function handleSubmit() {
     setError("");
     setLoading(true);

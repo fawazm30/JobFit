@@ -1,3 +1,10 @@
+/**
+ * @file auth.ts
+ * @description NextAuth.js configuration. Supports Google OAuth and email/password
+ * credentials. Uses JWT sessions, Prisma adapter, and custom redirect logic to
+ * send new users to onboarding and returning users to the dashboard.
+ */
+
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
@@ -30,14 +37,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   callbacks: {
+    /**
+     * Called after a successful sign-in. Always allows the sign-in to proceed.
+     * @param {{ user: object, account: object }} params - The signed-in user and OAuth account
+     * @returns {Promise<boolean>} Always true
+     */
     async signIn({ user, account }) {
       console.log("signIn callback:", { user, account });
       return true;
     },
+    /**
+     * Enriches the session object before it is returned to the client.
+     * @param {{ session: object, token: object }} params - Current session and JWT token
+     * @returns {Promise<object>} The (optionally enriched) session
+     */
     async session({ session, token }) {
       console.log("session callback:", { session, token });
       return session;
     },
+    /**
+     * Determines where to redirect after sign-in. New users (no industries set)
+     * are sent to /onboarding; all others go to /dashboard.
+     * @param {{ url: string, baseUrl: string }} params - The requested URL and app base URL
+     * @returns {Promise<string>} The resolved redirect URL
+     */
     async redirect({ url, baseUrl }) {
       if (url.includes("/onboarding")) return url;
 
@@ -72,6 +95,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
+      /**
+       * Validates email/password credentials against the database.
+       * @param {object} credentials - The submitted { email, password }
+       * @returns {Promise<object | null>} The user record on success, null on failure
+       */
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 

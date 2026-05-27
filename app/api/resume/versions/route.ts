@@ -1,7 +1,17 @@
+/**
+ * @file app/api/resume/versions/route.ts
+ * @description CRUD for resume versions. GET lists all versions; POST uploads a
+ * new versioned PDF, extracts skills, stores in Supabase, and sets it as active.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/resume/versions - List all resume versions for the current user.
+ * @returns {NextResponse} JSON { versions } ordered by createdAt descending
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) {
@@ -22,6 +32,12 @@ export async function GET() {
   return NextResponse.json({ versions });
 }
 
+/**
+ * POST /api/resume/versions - Upload a new resume version PDF and extract its skills.
+ * Also activates the new version as the user's current resume.
+ * @param {Request} req - Multipart form data with "resume" PDF and "name" string
+ * @returns {NextResponse} JSON { version } with the created ResumeVersion record
+ */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {

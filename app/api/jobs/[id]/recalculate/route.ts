@@ -1,3 +1,9 @@
+/**
+ * @file app/api/jobs/[id]/recalculate/route.ts
+ * @description Re-runs the Claude AI match scoring for a saved job against
+ * the user's current resume and skills, updating the stored scores.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +11,12 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
+/**
+ * POST /api/jobs/:id/recalculate - Re-score a saved job using the latest resume.
+ * @param {Request} req - Incoming request (no body required)
+ * @param {{ params: Promise<{ id: string }> }} context - Route params with job ID
+ * @returns {NextResponse} JSON { job } with refreshed matchScore and skill arrays, or 400/404/500
+ */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

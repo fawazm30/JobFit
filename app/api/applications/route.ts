@@ -1,7 +1,17 @@
+/**
+ * @file app/api/applications/route.ts
+ * @description Returns all job postings that have a non-null applicationStatus,
+ * representing jobs the user has actively applied to or is tracking.
+ */
+
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/applications - Fetch all tracked applications for the current user.
+ * @returns {NextResponse} JSON { applications } ordered by most recently updated, or 401
+ */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) {

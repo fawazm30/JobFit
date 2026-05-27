@@ -1,9 +1,20 @@
+/**
+ * @file app/login/page.tsx
+ * @description Combined login and signup page. Supports Google OAuth and
+ * email/password credentials. Includes live password strength validation
+ * on the signup tab.
+ */
+
 "use client";
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+/**
+ * Login and signup page with Google OAuth and credentials support.
+ * @returns {JSX.Element} The login/signup UI with tab toggle
+ */
 export default function LoginPage() {
   const [tab, setTab] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -20,6 +31,13 @@ export default function LoginPage() {
     { label: "One special character (!@#$%^&*)", valid: /[!@#$%^&*]/.test(password) },
   ];
 
+  /**
+   * Handles form submission for both login and signup flows.
+   * On signup, validates the password before calling /api/register, then signs in.
+   * On login, directly calls NextAuth signIn with credentials.
+   * @param {React.FormEvent} e - The form submit event
+   * @returns {Promise<void>}
+   */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");

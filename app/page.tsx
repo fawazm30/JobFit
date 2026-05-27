@@ -1,3 +1,10 @@
+/**
+ * @file app/page.tsx
+ * @description Public-facing marketing landing page. Contains the hero section
+ * with BlobCursor, an auto-scrolling coverflow carousel of sample job cards,
+ * a 2×2 feature grid with hover effects, and a final CTA section.
+ */
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -118,11 +125,23 @@ const JOB_CARDS = [
 const N = JOB_CARDS.length;
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
+/**
+ * Computes the shortest circular offset from the active card to card i.
+ * Returns a value in the range (-N/2, N/2] so cards animate via the shortest path.
+ * @param {number} i - Index of the card to compute the offset for
+ * @param {number} active - Current active card index (unbounded integer)
+ * @returns {number} Signed offset in the range (-N/2, N/2]
+ */
 function circularOffset(i: number, active: number): number {
   const raw = mod(i - mod(active, N), N);
   return raw > N / 2 ? raw - N : raw;
 }
 
+/**
+ * Auto-scrolling coverflow carousel displaying a rotating set of sample job cards.
+ * Auto-advances every 3 s and pauses for 2 s after any pointer interaction.
+ * @returns {JSX.Element} The carousel section with Motion-animated job cards
+ */
 function CoverflowCarousel() {
   const [active, setActive] = useState(3);
   const pointerStart = useRef<number | null>(null);
@@ -258,6 +277,10 @@ function CoverflowCarousel() {
   );
 }
 
+/**
+ * Public-facing landing page with hero, carousel preview, feature cards, and CTAs.
+ * @returns {JSX.Element} The full landing page
+ */
 export default function LandingPage() {
   const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
 

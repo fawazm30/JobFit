@@ -1,3 +1,11 @@
+/**
+ * @file BlobCursor.tsx
+ * @description Animated blob cursor effect using GSAP. Renders a configurable
+ * trail of soft blobs that follow the mouse inside a parent container.
+ * Uses a document-level mousemove listener with a bounds check so the blobs
+ * track the cursor correctly even when content layers sit above the canvas.
+ */
+
 'use client';
 
 import React, { useRef, useEffect } from 'react';
@@ -26,6 +34,11 @@ export interface BlobCursorProps {
   zIndex?: number;
 }
 
+/**
+ * Renders an animated blob cursor that follows the mouse within its container.
+ * @param {BlobCursorProps} props - Visual and animation configuration
+ * @returns {JSX.Element} A positioned div containing the SVG filter and blob elements
+ */
 export default function BlobCursor({
   blobType = 'circle',
   fillColor = '#5227FF',

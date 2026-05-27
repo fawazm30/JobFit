@@ -1,9 +1,20 @@
+/**
+ * @file app/profile/page.tsx
+ * @description User profile settings page. Allows updating name and email,
+ * changing the account password (credentials users only), and permanently
+ * deleting the account via a confirmation modal.
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+/**
+ * Profile settings page with sections for personal info, password, and danger zone.
+ * @returns {JSX.Element} The profile page UI, or a skeleton while loading
+ */
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -43,6 +54,10 @@ export default function ProfilePage() {
     }
   }, [session]);
 
+  /**
+   * Persists the updated name and email to the server via PATCH /api/profile.
+   * @returns {Promise<void>}
+   */
   async function saveProfile() {
     setSavingProfile(true);
     setProfileError("");
@@ -62,6 +77,10 @@ export default function ProfilePage() {
     setSavingProfile(false);
   }
 
+  /**
+   * Validates and submits a password change via PATCH /api/profile/password.
+   * @returns {Promise<void>}
+   */
   async function changePassword() {
     setPasswordError("");
     setPasswordSuccess("");
@@ -90,6 +109,10 @@ export default function ProfilePage() {
     setSavingPassword(false);
   }
 
+  /**
+   * Permanently deletes the user account via DELETE /api/profile and signs out.
+   * @returns {Promise<void>}
+   */
   async function deleteAccount() {
     setDeleting(true);
     const res = await fetch("/api/profile", { method: "DELETE" });
