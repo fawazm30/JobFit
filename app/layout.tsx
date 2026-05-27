@@ -20,9 +20,13 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
+
 export const metadata: Metadata = {
   title: "JobFit",
   description: "Find jobs that fit you",
+  icons: {
+    icon: "/logo_solo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
