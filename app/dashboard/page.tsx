@@ -248,7 +248,7 @@ export default function DashboardPage() {
         <h1 className="text-4xl font-black text-gray-900 mb-8 tracking-tight">DASHBOARD</h1>
 
         {/* Resume Preview with switcher */}
-        <div className="relative mb-10">
+        <div className="relative mb-10 overflow-visible">
           <h2 className="text-xl text-gray-500 mb-4">Your Resume</h2>
           <div
             className="bg-white rounded-t-xl overflow-hidden border border-gray-200"
@@ -281,14 +281,14 @@ export default function DashboardPage() {
 
           <button
             onClick={() => setShowResumeSwitcher(!showResumeSwitcher)}
-            className="absolute right-0 top-48 -translate-y-1/2 translate-x-4 w-9 h-9 flex items-center justify-center shadow-lg z-10 rounded-full border-2 border-white text-base"
+            className="absolute right-2 top-48 -translate-y-1/2 w-9 h-9 flex items-center justify-center shadow-lg z-10 rounded-full border-2 border-white text-base"
             style={{ background: "linear-gradient(135deg, #F97316, #EC4899)", color: "white", fontWeight: "bold" }}
           >
             {showResumeSwitcher ? "›" : "‹"}
           </button>
 
           {showResumeSwitcher && (
-            <div className="absolute right-0 top-0 translate-x-full ml-4 w-56 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-20">
+            <div className="absolute right-2 top-16 w-56 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-20">
               <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">Switch resume</p>
               {resumeVersions.length === 0 ? (
                 <p className="text-xs text-gray-400">No versions uploaded yet.</p>
