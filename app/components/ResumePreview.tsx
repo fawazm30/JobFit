@@ -16,12 +16,14 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 /**
  * Renders the first page of a PDF at the given URL.
  * @param {{ url: string }} props - Public URL of the PDF file to preview
- * @returns {JSX.Element} A single-page PDF preview at 600px width
+ * @returns {JSX.Element} A single-page PDF preview centered in its container
  */
 export default function ResumePreview({ url }: { url: string }) {
   return (
-    <Document file={url}>
-      <Page pageNumber={1} width={600} />
-    </Document>
+    <div className="flex justify-center w-full">
+      <Document file={url}>
+        <Page pageNumber={1} width={600} />
+      </Document>
+    </div>
   );
 }
