@@ -1,6 +1,6 @@
 # JobFit
 
-An AI-powered job matching platform that analyzes your resume and scores every job opportunity — so you know exactly where to focus your energy and what to improve.
+An AI-powered job matching platform that analyzes your resume and scores every job opportunity, so you know exactly where to focus your energy and what to improve.
 
 🌐 **Live Demo:** [job-fit-rosy.vercel.app](https://job-fit-rosy.vercel.app)
 
@@ -110,5 +110,3 @@ npm run test:run
 - Cover letter generation
 
 ---
-
-## Project Structure
