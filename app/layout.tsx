@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import Navbar from "./components/navbar";
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} min-h-full flex flex-col`}>
         <SessionProvider>
           <Navbar />
+          <Analytics />
           <div className="bg-gray-50 min-h-screen">
             {children}
           </div>
