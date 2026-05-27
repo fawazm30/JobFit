@@ -329,7 +329,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-            JobFit analyzes your resume and scores every job opportunity — so you know exactly where to focus your energy and what to improve.
+            JobFit analyzes your resume and scores every job opportunity, so you know exactly where to focus your energy and what to improve.
           </p>
 
           <div className="flex items-center justify-center gap-4">
